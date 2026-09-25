@@ -38,6 +38,7 @@ func main() {
 	name := flag.String("name", hostname(), "your display name")
 	dpKind := flag.String("datapath", "tap", "datapath: tap | loopback")
 	apiAddr := flag.String("api", "127.0.0.1:9099", "local control API address")
+	controlToken := flag.String("control-token", "", "local control API authentication token")
 	adapter := flag.String("adapter", "OrbitLan", "TAP adapter name")
 	idFlag := flag.String("id", "", "override peer id (testing)")
 	inject := flag.Bool("selftest-inject", false, "inject broadcast frames (loopback testing)")
@@ -49,6 +50,10 @@ func main() {
 	}
 	if *code == "" {
 		fmt.Println("need -code <join code>")
+		os.Exit(1)
+	}
+	if *controlToken == "" {
+		fmt.Println("need -control-token <random token>")
 		os.Exit(1)
 	}
 	if *relayMode != "off" && *relayMode != "auto" && *relayMode != "on" {
@@ -87,7 +92,10 @@ func main() {
 	mesh := newMesh(peerID, *name, *code, *relayMode, dp, coord)
 
 	// control API
-	api := &controlAPI{mesh: mesh, code: *code, myID: peerID, myName: *name}
+	api := &controlAPI{
+		mesh: mesh, code: *code, myID: peerID, myName: *name,
+		token: *controlToken, shutdown: make(chan struct{}),
+	}
 	go api.serve(*apiAddr)
 
 	// join + run. For TAP we need the assigned IP to configure the adapter.
@@ -120,7 +128,10 @@ func main() {
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	<-sig
+	select {
+	case <-sig:
+	case <-api.shutdown:
+	}
 	log.Println("shutting down…")
 	mesh.Close()
 }

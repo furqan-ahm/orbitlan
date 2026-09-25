@@ -49,8 +49,9 @@ is peer-to-peer.
 ## Download & install (Windows)
 
 Grab the latest release from the [Releases](../../releases) page, unzip, and run
-`OrbitLan.exe`. On first connect it installs a signed virtual network adapter (a one-time
-Windows prompt). The app auto-updates itself (signed updates only).
+`OrbitLanSetup.exe` once. Setup installs the signed virtual network adapter and OrbitLan's
+small privileged network service with one Windows approval. After that, open OrbitLan from
+the Start menu normally — the UI and notification-area app never request elevation.
 
 ## Relay & privacy
 
@@ -81,7 +82,7 @@ optional.
 | Path | What |
 |---|---|
 | [`coordinator/`](coordinator/) | Cloudflare Worker + Durable Object signaling/TURN coordinator |
-| [`client/`](client/) | Windows client: virtual adapter engine (Go) + WPF UI (C#) |
+| [`client/`](client/) | Windows client: virtual adapter engine (Go) + native UI/service (C++/Win32) |
 | [`website/`](website/) | Marketing/landing site (Cloudflare Pages) |
 | `docs/` | Architecture and operational notes |
 

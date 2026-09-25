@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, native-cpp-client]
   pull_request:
 
 permissions:
@@ -42,3 +42,22 @@ jobs:
           go build -trimpath -o ../ui/payload/orbitlan-engine.exe .
       - name: Build UI
         run: dotnet build client/ui/OrbitLan.csproj -c Release
+      - name: Build native client, service, and installer
+        run: |
+          cmake -S client/native -B build/native -A x64
+          cmake --build build/native --config Release --parallel
+          ctest --test-dir build/native -C Release --output-on-failure
+      - name: Stage native preview
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path build/native-artifact/driver -Force | Out-Null
+          New-Item -ItemType Directory -Path build/native-artifact/assets -Force | Out-Null
+          Copy-Item build/native/bin/OrbitLan.exe,build/native/bin/OrbitLanService.exe,build/native/bin/OrbitLanSetup.exe build/native-artifact/
+          Copy-Item client/ui/payload/orbitlan-engine.exe build/native-artifact/
+          Copy-Item client/ui/payload/driver/* build/native-artifact/driver/
+          Copy-Item client/ui/assets/earth-clouds.gif build/native-artifact/assets/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OrbitLan-Native-${{ github.sha }}
+          path: build/native-artifact
+          if-no-files-found: error

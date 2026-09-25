@@ -1,24 +1,63 @@
 package main
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
+	"sync"
 )
 
 // controlAPI is the tiny local surface the UI polls. Loopback-only; not exposed off-box.
 type controlAPI struct {
-	mesh   *Mesh
-	code   string
-	myID   string
-	myName string
-	myIP   string
+	mesh         *Mesh
+	code         string
+	myID         string
+	myName       string
+	myIP         string
+	token        string
+	shutdown     chan struct{}
+	shutdownOnce sync.Once
 }
 
 func (a *controlAPI) serve(addr string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/status", a.status)
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
+	mux.HandleFunc("/health", a.health)
+	mux.HandleFunc("/shutdown", a.stop)
 	http.ListenAndServe(addr, mux)
+}
+
+func (a *controlAPI) authorized(r *http.Request) bool {
+	provided := r.Header.Get("X-OrbitLan-Token")
+	return a.token != "" && len(provided) == len(a.token) &&
+		subtle.ConstantTimeCompare([]byte(provided), []byte(a.token)) == 1
+}
+
+func (a *controlAPI) requireAuth(w http.ResponseWriter, r *http.Request) bool {
+	if a.authorized(r) {
+		return true
+	}
+	http.Error(w, "unauthorized", http.StatusUnauthorized)
+	return false
+}
+
+func (a *controlAPI) health(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	w.Write([]byte("ok"))
+}
+
+func (a *controlAPI) stop(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	a.shutdownOnce.Do(func() { close(a.shutdown) })
+	w.Write([]byte("stopping"))
 }
 
 type statusResp struct {
@@ -31,6 +70,9 @@ type statusResp struct {
 }
 
 func (a *controlAPI) status(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
 	peers := a.mesh.snapshotPeers()
 	direct, relay, connecting := 0, 0, 0
 	for _, p := range peers {
