@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  coordinator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coordinator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: coordinator/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  windows-client:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Test and build engine
+        working-directory: client/engine
+        run: |
+          go test ./...
+          go build -trimpath -o ../ui/payload/orbitlan-engine.exe .
+      - name: Build UI
+        run: dotnet build client/ui/OrbitLan.csproj -c Release

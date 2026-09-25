@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>OrbitLan</AssemblyName>
+    <RootNamespace>OrbitLan</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>orbitlan.ico</ApplicationIcon>
+    <Version>1.4.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- window / taskbar icon at runtime -->
+    <Resource Include="orbitlan.ico" />
+    <!-- the engine + adapter tooling ship next to the UI exe -->
+    <None Include="payload\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

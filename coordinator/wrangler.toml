@@ -1,0 +1,32 @@
+# OrbitLan coordinator — Cloudflare Worker + Durable Objects (free tier).
+#
+# Deploy:
+#   npm install
+#   npx wrangler secret put CF_TURN_KEY_ID
+#   npx wrangler secret put CF_TURN_API_TOKEN
+#   npx wrangler deploy
+#
+# Local dev (uses .dev.vars for secrets):
+#   npx wrangler dev
+
+name = "orbitlan"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+workers_dev = true
+preview_urls = false
+
+# Non-secret config. Secrets (CF_TURN_KEY_ID, CF_TURN_API_TOKEN) are set with
+# `wrangler secret put`, never committed.
+[vars]
+RELAY_ENABLED = "true"   # "false" => direct-only for everyone (free-pool safety switch)
+MAX_MEMBERS = "32"       # generous per-network cap
+
+# One Durable Object class = one network per join code.
+[[durable_objects.bindings]]
+name = "NETWORK"
+class_name = "Network"
+
+# SQLite-backed DO storage — free on the Workers free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Network"]

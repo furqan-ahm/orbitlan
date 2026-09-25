@@ -1,0 +1,29 @@
+# secrets — never commit
+secrets/
+*.pem
+.dev.vars
+*.env
+
+# node / wrangler
+node_modules/
+.wrangler/
+dist/
+
+# build output
+bin/
+obj/
+*.exe
+*.zip
+publish/
+
+# Required signed adapter installer bundled with the client.
+!client/ui/payload/driver/devcon.exe
+
+# editor / os
+.vs/
+.vscode/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
+*.log

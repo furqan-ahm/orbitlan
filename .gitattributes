@@ -1,0 +1,15 @@
+# Preserve the upstream signed driver payload byte-for-byte. The INF remains
+# binary to Git because normalizing its CRLF bytes would invalidate the catalog.
+client/ui/payload/driver/OemVista.inf binary
+client/ui/payload/driver/devcon.exe binary
+client/ui/payload/driver/tap0901.cat binary
+client/ui/payload/driver/tap0901.sys binary
+client/ui/payload/driver/LICENSE-*.txt text eol=lf
+
+# Binary application and website assets.
+*.cat binary
+*.exe binary
+*.ico binary
+*.png binary
+*.sys binary
+*.webp binary
