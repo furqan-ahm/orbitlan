@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OrbitLan — Play LAN games anywhere</title>
 <meta name="description" content="A free, peer-to-peer virtual LAN for gaming with friends across cities and ISPs. Create a network, share a code, and your LAN games just work again.">
+<link rel="icon" type="image/png" href="assets/orbitlan-logo.png">
 
 <!-- The support URL must be replaced after its Patreon/Lemon Squeezy page is created. -->
 
@@ -14,21 +15,21 @@
 
   :root{--night:#0b1045;--ink:#15172f;--muted:#5c627c;--paper:#f7f6fb;--white:#fff;--blue:#4e7fea;--violet:#7868dc;--coral:#ef7b86;--line:#dadbe8}
   *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.65;background:var(--paper);overflow-x:hidden}a{text-decoration:none;color:inherit}.wrap{width:min(1120px,calc(100% - 48px));margin:0 auto}
-  .site-header{position:absolute;inset:0 0 auto;z-index:10}.nav{height:78px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;flex-direction:column;gap:1px;color:var(--white);line-height:1}.brand-name{font-size:24px;font-weight:850;letter-spacing:-1px}.brand-tag{font-size:10px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:#bfc3e8}.nav-links{display:flex;align-items:center;gap:30px}.nav-links a{color:#e9eaff;font-size:14px;font-weight:650}.nav-links a:hover{color:var(--white)}.nav-links .nav-cta{padding:9px 16px;border:1px solid rgba(255,255,255,.5);border-radius:7px}
+  .site-header{position:absolute;inset:0 0 auto;z-index:10}.nav{height:78px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;flex-direction:column;gap:1px;color:var(--white);line-height:1}.brand-name{display:flex;align-items:center;font-family:"Segoe UI Variable Display","Segoe UI",Inter,ui-sans-serif,sans-serif;font-size:25px;font-weight:800;letter-spacing:-1px}.brand-orbit{display:block;width:44px;height:44px;margin-right:-4px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 7px rgba(0,0,24,.45))}.brand-tag{margin-left:40px;font-size:10px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:#bfc3e8}.nav-links{display:flex;align-items:center;gap:30px}.nav-links a{color:#e9eaff;font-size:14px;font-weight:650}.nav-links a:hover{color:var(--white)}.nav-links .nav-cta{padding:9px 16px;border:1px solid rgba(255,255,255,.5);border-radius:7px}
   .hero{position:relative;isolation:isolate;min-height:760px;height:100svh;max-height:940px;color:var(--white);background:linear-gradient(180deg,#090e43 0%,#111755 52%,#24245f 78%,#40316b 100%);display:flex;align-items:center;overflow:hidden}.sky{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);align-items:center;gap:54px;padding-top:40px}.eyebrow{margin:0 0 22px;font-family:'PressStart',monospace;font-size:10px;line-height:1.6;color:#c9c7ff;text-transform:uppercase;letter-spacing:.08em}.hero h1{max-width:720px;margin:0;font-size:clamp(50px,6.8vw,92px);line-height:.98;letter-spacing:-.065em}.hero-copy{max-width:600px;margin:26px 0 30px;font-size:clamp(18px,2vw,22px);line-height:1.55;color:#d8daf5}.actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:8px;background:var(--white);color:#181a42;font-size:14px;font-weight:750;transition:transform .15s ease,background .15s ease}.button:hover{transform:translateY(-2px);background:#eeeefe}.button.secondary{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.45)}.button.secondary:hover{background:rgba(255,255,255,.1)}.micro{margin:18px 0 0;color:#b9bce2;font-size:14px}
-  .planet{position:relative;display:flex;justify-content:center;align-items:center;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img{position:relative;z-index:1;display:block;width:min(116%,560px);max-width:none;height:auto;image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}.planet-wind{position:absolute;left:50%;top:50%;width:136%;height:auto;aspect-ratio:1/1;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated}.planet-wind.back{z-index:0}.planet-wind.front{z-index:2}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
+  .planet{position:relative;display:flex;justify-content:center;align-items:center;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img{position:relative;z-index:1;display:block;width:min(158%,760px);max-width:none;height:auto;image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
   .how{padding:86px 0 76px}.intro{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;margin-bottom:62px}.label{margin:8px 0 0;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}.intro h2{margin:0;font-size:clamp(34px,4vw,58px);line-height:1.08;letter-spacing:-.045em}.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.step{padding:32px 34px 0 0}.step+.step{padding-left:34px;border-left:1px solid var(--line)}.step span{color:var(--coral);font-size:13px;font-weight:800}.step h3{margin:8px 0 8px;font-size:20px;letter-spacing:-.02em}.step p{margin:0;color:var(--muted);font-size:16px}
   .trust{padding:34px 0 70px}.trust-row{display:flex;justify-content:space-between;gap:30px;padding-top:30px;border-top:1px solid var(--line)}.trust-item{max-width:300px}.trust-item strong{display:block;margin-bottom:4px;font-size:15px}.trust-item span{color:var(--muted);font-size:14px}
   .support{background:#252557;color:var(--white);padding:62px 0}.support-row{display:flex;align-items:center;justify-content:space-between;gap:44px}.support h2{margin:0 0 8px;font-size:clamp(30px,3.5vw,48px);letter-spacing:-.04em}.support p{max-width:660px;margin:0;color:#c9cbe7}.support .button{flex:0 0 auto}
   footer{background:#1a1a42;color:#afb2d1;padding:28px 0;font-size:13px}.footer-row{display:flex;align-items:center;justify-content:space-between;gap:20px}.footer-links{display:flex;gap:22px}.footer-links a:hover{color:#fff}
-  @media(max-width:780px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:21px}.brand-tag{font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:116px 0 78px}.hero-grid{grid-template-columns:1fr;gap:44px;padding:0;text-align:center}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1}.planet img{width:min(92vw,430px)}.intro{grid-template-columns:1fr;gap:14px;margin-bottom:42px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
+  @media(max-width:780px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:22px}.brand-orbit{width:40px;height:40px;margin-right:-4px}.brand-tag{margin-left:36px;font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:116px 0 78px}.hero-grid{grid-template-columns:1fr;gap:44px;padding:0;text-align:center}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1}.planet img{width:min(125vw,585px)}.intro{grid-template-columns:1fr;gap:14px;margin-bottom:42px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}.planet{animation:none}}
 </style>
 </head>
 <body>
 <header class="site-header">
   <nav class="wrap nav" aria-label="Main navigation">
-    <a class="brand" href="#top"><span class="brand-name">OrbitLan</span><span class="brand-tag">Virtual LAN for games</span></a>
+    <a class="brand" href="#top"><span class="brand-name"><img class="brand-orbit" src="assets/earth-clouds.gif" width="32" height="32" alt=""><span>rbitLan</span></span><span class="brand-tag">Virtual LAN for games</span></a>
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">Source</a>
@@ -52,9 +53,7 @@
         <p class="micro">No accounts. No paid tier. Open source.</p>
       </div>
       <div class="planet">
-        <canvas class="planet-wind back" id="windBack" aria-hidden="true"></canvas>
-        <img src="assets/earthspin-transparent.webp" width="240" height="240" alt="A pixel-art Earth rotating slowly">
-        <canvas class="planet-wind front" id="windFront" aria-hidden="true"></canvas>
+        <img src="assets/earth-clouds.gif" width="286" height="286" alt="A pixel-art Earth rotating beneath bands of cloud">
       </div>
     </div>
   </section>
@@ -108,18 +107,9 @@
   const canvas = document.getElementById('sky');
   const hero = canvas.closest('.hero');
   const ctx = canvas.getContext('2d', { alpha: true });
-  const windBack = document.getElementById('windBack');
-  const windFront = document.getElementById('windFront');
-  const windBackCtx = windBack.getContext('2d', { alpha: true });
-  const windFrontCtx = windFront.getContext('2d', { alpha: true });
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const windBands = [
-    { rx:.36, ry:.06, offsetY:-.165, speed:.40, starts:[.30,2.62,4.72], trailScale:.86, color:'#e5edff' },
-    { rx:.405, ry:.095, offsetY:-.005, speed:-.32, starts:[1.82,5.18], trailScale:1, color:'#f5f7ff' },
-    { rx:.365, ry:.06, offsetY:.155, speed:.46, starts:[.96,3.92], trailScale:.82, color:'#d7e1ff' }
-  ];
-  let width = 0, height = 0, windWidth = 0, windHeight = 0;
-  let stars = [], windClouds = [], last = 0, frameId = 0;
+  let width = 0, height = 0;
+  let stars = [], last = 0, frameId = 0;
 
   function makeStars() {
     const count = Math.min(90, Math.max(42, Math.floor(width * height / 18000)));
@@ -133,94 +123,13 @@
     }));
   }
 
-  function makeWindClouds() {
-    windClouds = [];
-    windBands.forEach((band) => {
-      band.starts.forEach((start) => {
-        const trail = Math.max(12, Math.round((18 + Math.random() * 7) * band.trailScale));
-        const denseAt = .25 + Math.random() * .18;
-        const secondDenseAt = .66 + Math.random() * .2;
-        const density = Array.from({length:trail}, (_, segment) => {
-          const progress = segment / Math.max(1, trail - 1);
-          const firstPatch = Math.exp(-Math.pow((progress - denseAt) / .18, 2));
-          const secondPatch = Math.exp(-Math.pow((progress - secondDenseAt) / .14, 2));
-          return Math.min(1, .16 + Math.max(firstPatch, secondPatch) * .72 + Math.random() * .16);
-        });
-        windClouds.push({
-          band,
-          angle: start + (Math.random() - .5) * .12,
-          speed: band.speed * (.82 + Math.random() * .36),
-          base: 4.5 + Math.random() * 1.5,
-          trail,
-          spacing: .036 + Math.random() * .012,
-          density,
-          puffs: Array.from({length:trail}, () => .72 + Math.random() * .64),
-          lift: Array.from({length:trail}, () => (Math.random() - .5) * 1.5),
-          puffSide: Array.from({length:trail}, () => Math.random() < .5 ? -1 : 1),
-          alpha: .68 + Math.random() * .2,
-        });
-      });
-    });
-  }
-
   function resize() {
     width = Math.max(1, Math.round(hero.clientWidth));
     height = Math.max(1, Math.round(hero.clientHeight));
     canvas.width = width;
     canvas.height = height;
-    windWidth = 200;
-    windHeight = 200;
-    windBack.width = windFront.width = windWidth;
-    windBack.height = windFront.height = windHeight;
     makeStars();
-    makeWindClouds();
     draw(0, 0);
-  }
-
-  function drawWind(delta) {
-    windBackCtx.clearRect(0, 0, windWidth, windHeight);
-    windFrontCtx.clearRect(0, 0, windWidth, windHeight);
-    const centerX = windWidth / 2;
-    const centerY = windHeight / 2;
-
-    for (const cloud of windClouds) {
-      if (!reduceMotion) cloud.angle += cloud.speed * delta;
-      for (let segment = 0; segment < cloud.trail; segment++) {
-        const progress = segment / (cloud.trail - 1);
-        const angle = cloud.angle - segment * cloud.spacing;
-        const sinAngle = Math.sin(angle);
-        const x = centerX + Math.cos(angle) * windWidth * cloud.band.rx;
-        const y = centerY + cloud.band.offsetY * windHeight + sinAngle * windHeight * cloud.band.ry;
-        const front = sinAngle >= 0;
-        const windCtx = front ? windFrontCtx : windBackCtx;
-        const depthPosition = (sinAngle + 1) / 2;
-        const depth = .18 + depthPosition * .7;
-        const perspective = .72 + depthPosition * .36;
-        const envelope = .34 + Math.sin(progress * Math.PI) * .66;
-        const density = cloud.density[segment];
-        const thickness = Math.max(2, cloud.base * cloud.puffs[segment] * envelope * perspective * (.72 + density * .38));
-        const length = thickness * (1.18 + density * .72 + cloud.puffs[segment] * .16);
-        const lift = cloud.lift[segment] * envelope;
-
-        windCtx.globalAlpha = cloud.alpha * depth * (.5 + envelope * .5) * (.38 + density * .62);
-        windCtx.fillStyle = cloud.band.color;
-        windCtx.fillRect(
-          Math.round(x - length / 2),
-          Math.round(y - thickness / 2 + lift),
-          Math.ceil(length),
-          Math.ceil(thickness)
-        );
-        if (density > .58 && cloud.puffs[segment] > .88) {
-          windCtx.fillRect(
-            Math.round(x - length * .2),
-            Math.round(y - thickness * (.38 + cloud.puffSide[segment] * .55) + lift),
-            Math.ceil(length * .52),
-            Math.max(2, Math.ceil(thickness * (.4 + density * .2)))
-          );
-        }
-      }
-    }
-    windBackCtx.globalAlpha = windFrontCtx.globalAlpha = 1;
   }
 
   function draw(delta, now) {
@@ -240,7 +149,6 @@
       }
     }
     ctx.globalAlpha = 1;
-    drawWind(delta);
   }
 
   function frame(now) {

@@ -9,7 +9,7 @@ The client has two parts:
 
 ## Requirements
 
-- Windows 10 or later, x64
+- Windows 10 or later, x64 (Windows 7/8 are not supported by the current .NET and Go runtimes)
 - Go 1.25 or later
 - .NET 10 SDK
 - PowerShell 5.1 or later
@@ -33,7 +33,8 @@ User configuration is stored at `%LOCALAPPDATA%\OrbitLan\config.json`:
 {
   "coordinatorURL": "https://orbitlan.furqan-ahm.workers.dev",
   "relayMode": "auto",
-  "priority": false
+  "priority": false,
+  "performanceMode": false
 }
 ```
 
@@ -42,6 +43,10 @@ The coordinator URL and relay mode can also be changed in Settings. Relay modes 
 - `off`: host and server-reflexive ICE candidates only; never uses TURN.
 - `auto`: direct-first with TURN fallback.
 - `on`: relay candidates only, intended for troubleshooting.
+
+Performance mode keeps the baked Earth/cloud animation and stars while disabling the live
+mesh, glow, and floating effects. Minimizing OrbitLan hides it in the Windows notification
+area; the network remains connected and can be managed from the tray icon.
 
 The official coordinator never receives game traffic. It is used only for room membership,
 signaling, and short-lived TURN credentials.

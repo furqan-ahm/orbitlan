@@ -1,7 +1,7 @@
 <Window x:Class="OrbitLan.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="OrbitLan" Width="440" Height="660"
+        Title="OrbitLan" Width="440" Height="760"
         Icon="orbitlan.ico"
         WindowStyle="None" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
@@ -23,8 +23,8 @@
                         <Border x:Name="b" CornerRadius="14">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#3D5BDB" Offset="0"/>
-                                    <GradientStop Color="#6C8CFF" Offset="1"/>
+                                    <GradientStop Color="#4E7FEA" Offset="0"/>
+                                    <GradientStop Color="#7868DC" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -44,8 +44,8 @@
 
         <!-- ghost (secondary): subtle filled, honors Padding/Height -->
         <Style TargetType="Button" x:Key="Ghost">
-            <Setter Property="Background" Value="#1A2547"/>
-            <Setter Property="Foreground" Value="#EDF0FF"/>
+            <Setter Property="Background" Value="#252557"/>
+            <Setter Property="Foreground" Value="#F7F6FB"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -57,7 +57,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="b" Property="Background" Value="#22305A"/>
+                                <Setter TargetName="b" Property="Background" Value="#34346D"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -67,85 +67,234 @@
 
         <!-- text field wrapper -->
         <Style TargetType="Border" x:Key="Field">
-            <Setter Property="Background" Value="#141C3D"/>
+            <Setter Property="Background" Value="#181A4B"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Height" Value="46"/>
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#222E56"/>
+            <Setter Property="BorderBrush" Value="#35366F"/>
         </Style>
         <Style TargetType="TextBox" x:Key="FieldText">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#EDF0FF"/>
+            <Setter Property="Foreground" Value="#F7F6FB"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="CaretBrush" Value="#6C8CFF"/>
+            <Setter Property="CaretBrush" Value="#7868DC"/>
         </Style>
         <Style TargetType="TextBlock" x:Key="Label">
-            <Setter Property="Foreground" Value="#8B93B8"/>
+            <Setter Property="Foreground" Value="#BFC3E8"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Margin" Value="2,0,0,7"/>
+        </Style>
+        <Style TargetType="ComboBoxItem" x:Key="DarkComboBoxItem">
+            <Setter Property="Foreground" Value="#F7F6FB"/>
+            <Setter Property="Background" Value="#252557"/>
+            <Setter Property="Padding" Value="11,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBackground" Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}" CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBackground" Property="Background" Value="#4E4F8D"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBackground" Property="Background" Value="#34346D"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBox" x:Key="DarkComboBox">
+            <Setter Property="Foreground" Value="#F7F6FB"/>
+            <Setter Property="Background" Value="#252557"/>
+            <Setter Property="BorderBrush" Value="#4E4F8D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkComboBoxItem}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="DropDownToggle" Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="SelectorBackground" CornerRadius="10"
+                                                Background="{Binding Background, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}"
+                                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}"
+                                                BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="38"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Margin="12,0,4,0" VerticalAlignment="Center"
+                                                                  HorizontalAlignment="Left" RecognizesAccessKey="True"
+                                                                  TextElement.Foreground="#F7F6FB"
+                                                                  Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}"
+                                                                  ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}"
+                                                                  ContentTemplateSelector="{Binding ItemTemplateSelector, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}"/>
+                                                <Path Grid.Column="1" Width="10" Height="6" Stretch="Fill"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Fill="#C9C7FF" Data="M 0 0 L 5 5 L 10 0 Z"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="SelectorBackground" Property="BorderBrush" Value="#7868DC"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="SelectorBackground" Property="Background" Value="#2D2D66"/>
+                                                <Setter TargetName="SelectorBackground" Property="BorderBrush" Value="#8E83EE"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
+                                   Focusable="False" PopupAnimation="Fade" IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Margin="0,4,0,0" Padding="4" CornerRadius="10"
+                                        Background="#252557" BorderBrush="#5656A0" BorderThickness="1">
+                                    <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="9"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Width="9" Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True"
+                                   Orientation="{TemplateBinding Orientation}"
+                                   ViewportSize="{TemplateBinding ViewportSize}" Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb MinHeight="28" Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#6866A8" CornerRadius="4" Margin="2,1"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#070B1E" Offset="0"/>
-                <GradientStop Color="#0D1430" Offset="0.55"/>
-                <GradientStop Color="#16204A" Offset="1"/>
+                <GradientStop Color="#090E43" Offset="0"/>
+                <GradientStop Color="#111755" Offset="0.55"/>
+                <GradientStop Color="#40316B" Offset="1"/>
             </LinearGradientBrush>
         </Grid.Background>
 
         <Canvas x:Name="StarsCanvas" IsHitTestVisible="False"/>
-        <!-- soft planet glow anchoring the bottom -->
-        <Ellipse Width="560" Height="560" Margin="0,0,0,-400" VerticalAlignment="Bottom"
-                 HorizontalAlignment="Center" IsHitTestVisible="False" Opacity="0.9">
-            <Ellipse.Fill>
-                <RadialGradientBrush GradientOrigin="0.5,0.35" Center="0.5,0.4" RadiusX="0.8" RadiusY="0.8">
-                    <GradientStop Color="#3D5BDB" Offset="0"/>
-                    <GradientStop Color="#16204A" Offset="0.75"/>
-                    <GradientStop Color="#0C1330" Offset="1"/>
-                </RadialGradientBrush>
-            </Ellipse.Fill>
-        </Ellipse>
 
         <DockPanel Margin="26,18,26,22">
-            <!-- header -->
+            <!-- compact window controls -->
             <Grid DockPanel.Dock="Top">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <UniformGrid Rows="2" Columns="2" Width="18" Height="18">
-                        <Ellipse Fill="#EDF0FF" Margin="1.5"/><Ellipse Fill="#EDF0FF" Margin="1.5"/>
-                        <Ellipse Fill="#EDF0FF" Margin="1.5"/><Ellipse Fill="#EDF0FF" Margin="1.5"/>
-                    </UniformGrid>
-                    <TextBlock Text="OrbitLan" Foreground="#EDF0FF" FontSize="20" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <Image x:Name="HeaderEarthImage" Width="29" Height="29" Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    <TextBlock Text="rbitLan" Foreground="#F7F6FB" FontSize="21"
+                               FontFamily="Segoe UI Variable Display, Segoe UI" FontWeight="Bold"
+                               Margin="-1,0,0,1" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Border Background="#141C3D" CornerRadius="14" Padding="12,5" VerticalAlignment="Center">
+                    <Border Background="#181A4B" CornerRadius="14" Padding="10,5" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="#8B93B8" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="StatusText" Text="Offline" Foreground="#EDF0FF" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="#BFC3E8" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="StatusText" Text="Offline" Foreground="#F7F6FB" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <TextBlock Text="⚙" Foreground="#8B93B8" FontSize="15" Margin="14,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Settings_Click" ToolTip="Settings"/>
-                    <TextBlock Text="—" Foreground="#8B93B8" FontSize="16" Margin="14,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Minimize_Click"/>
-                    <TextBlock Text="✕" Foreground="#8B93B8" FontSize="14" Margin="12,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Close_Click"/>
+                    <TextBlock Text="⚙" Foreground="#BFC3E8" FontSize="15" Margin="12,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Settings_Click" ToolTip="Settings"/>
+                    <TextBlock Text="—" Foreground="#BFC3E8" FontSize="16" Margin="12,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Minimize_Click"/>
+                    <TextBlock Text="✕" Foreground="#BFC3E8" FontSize="14" Margin="10,0,0,0" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="Close_Click"/>
                 </StackPanel>
+            </Grid>
+
+            <Grid x:Name="PlanetHost" DockPanel.Dock="Top" Width="300" Height="280"
+                  Margin="0,4,0,0" HorizontalAlignment="Center" IsHitTestVisible="False">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="PlanetSway"/>
+                </Grid.RenderTransform>
+                <Grid x:Name="PlanetVisual" Width="286" Height="286" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <ScaleTransform x:Name="PlanetVisualScale" ScaleX="1" ScaleY="1"/>
+                    </Grid.RenderTransform>
+                    <Ellipse x:Name="PlanetGlow" Width="238" Height="150" VerticalAlignment="Center" Opacity="0.26">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#7868DC" Offset="0"/>
+                                <GradientStop Color="#004E7FEA" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Canvas x:Name="NetworkBackCanvas" Width="286" Height="286" Panel.ZIndex="1"/>
+                    <Image x:Name="EarthImage" Width="286" Height="286" Stretch="Uniform"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor" Panel.ZIndex="2"/>
+                    <Canvas x:Name="NetworkFrontCanvas" Width="286" Height="286" Panel.ZIndex="4"/>
+                </Grid>
+                <Ellipse x:Name="ConnectionPulse" Width="218" Height="218" Panel.ZIndex="5"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0"
+                         Fill="Transparent" Stroke="#69EDA8" StrokeThickness="4.5"
+                         RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform x:Name="ConnectionPulseScale" ScaleX="0.9" ScaleY="0.9"/>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
             </Grid>
 
             <!-- update banner -->
             <Border x:Name="UpdateBanner" DockPanel.Dock="Top" Visibility="Collapsed"
-                    Background="#1E2A55" CornerRadius="12" Padding="14,10" Margin="0,12,0,0"
-                    BorderBrush="#324278" BorderThickness="1">
+                    Background="#252557" CornerRadius="12" Padding="14,10" Margin="0,12,0,0"
+                    BorderBrush="#4E4F8D" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                        <TextBlock x:Name="UpdateText" Text="Update available" Foreground="#EDF0FF" FontSize="13" FontWeight="Medium" HorizontalAlignment="Left"/>
-                        <TextBlock x:Name="UpdateSub" Text="Click to update and restart." Foreground="#8B93B8" FontSize="11" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,2,0,0"/>
+                        <TextBlock x:Name="UpdateText" Text="Update available" Foreground="#F7F6FB" FontSize="13" FontWeight="Medium" HorizontalAlignment="Left"/>
+                        <TextBlock x:Name="UpdateSub" Text="Click to update and restart." Foreground="#BFC3E8" FontSize="11" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,2,0,0"/>
                     </StackPanel>
                     <Button Grid.Column="1" x:Name="UpdateBtn" Content="Update &amp; restart" Style="{StaticResource Ghost}"
                             Padding="14,9" VerticalAlignment="Center" Click="Update_Click"/>
@@ -156,8 +305,8 @@
             <Grid>
                 <!-- ===================== SETUP (vertically centered) ===================== -->
                 <StackPanel x:Name="SetupView" VerticalAlignment="Center" Margin="0,0,0,20">
-                    <TextBlock Text="Join a network" Foreground="#EDF0FF" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Everyone on the same code shares one LAN." Foreground="#8B93B8" FontSize="13"
+                    <TextBlock Text="Join a network" Foreground="#F7F6FB" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Everyone on the same code shares one LAN." Foreground="#BFC3E8" FontSize="13"
                                HorizontalAlignment="Center" Margin="0,6,0,26"/>
 
                     <TextBlock Text="Your name" Style="{StaticResource Label}"/>
@@ -183,50 +332,50 @@
                 </StackPanel>
 
                 <!-- ===================== CONNECTED (fills, list grows) ===================== -->
-                <Grid x:Name="ConnectedView" Visibility="Collapsed" Margin="0,18,0,0">
+                <Grid x:Name="ConnectedView" Visibility="Collapsed" Margin="0,-16,0,0" Panel.ZIndex="6">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*" MinHeight="196"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- code card -->
-                    <Border Grid.Row="0" Background="#141C3D" CornerRadius="18" Padding="18,15">
+                    <!-- compact network card keeps the node list and Disconnect action visible -->
+                    <Border Grid.Row="0" Background="#181A4B" CornerRadius="18" Padding="16,12">
                         <Grid>
-                            <StackPanel>
-                                <TextBlock Text="NETWORK CODE" Foreground="#8B93B8" FontSize="11" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="CodeDisplay" Text="—" Foreground="#EDF0FF" FontSize="26" FontWeight="Bold" Margin="0,3,0,0"/>
-                                <TextBlock Text="Share this code so friends can join." Foreground="#5C6689" FontSize="11" Margin="0,3,0,0"/>
-                            </StackPanel>
-                            <Button Content="Copy" Style="{StaticResource Ghost}" Padding="16,9" HorizontalAlignment="Right"
-                                    VerticalAlignment="Center" Click="Copy_Click"/>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid>
+                                <StackPanel>
+                                    <TextBlock Text="NETWORK CODE" Foreground="#BFC3E8" FontSize="10" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="CodeDisplay" Text="—" Foreground="#F7F6FB" FontSize="23" FontWeight="Bold" Margin="0,1,0,0"/>
+                                </StackPanel>
+                                <Button Content="Copy" Style="{StaticResource Ghost}" Padding="14,8" HorizontalAlignment="Right"
+                                        VerticalAlignment="Center" Click="Copy_Click"/>
+                            </Grid>
+                            <Grid Grid.Row="1" Margin="0,8,0,0">
+                                <TextBlock Foreground="#BFC3E8" FontSize="11">
+                                    <Run Text="Your IP  "/><Run x:Name="MyIpText" Text="—" Foreground="#F7F6FB" FontWeight="SemiBold"/>
+                                </TextBlock>
+                                <TextBlock x:Name="SummaryText" Text="" Foreground="#8E83EE" FontSize="11"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
                         </Grid>
                     </Border>
 
-                    <!-- your IP + summary -->
-                    <Border Grid.Row="1" Background="#141C3D" CornerRadius="14" Padding="16,12" Margin="0,12,0,0">
-                        <Grid>
-                            <StackPanel>
-                                <TextBlock Text="Your virtual IP" Foreground="#8B93B8" FontSize="12"/>
-                                <TextBlock x:Name="MyIpText" Text="—" Foreground="#EDF0FF" FontSize="18" FontWeight="Medium"/>
-                            </StackPanel>
-                            <TextBlock x:Name="SummaryText" Text="" Foreground="#6C8CFF" FontSize="12"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
+                    <TextBlock Grid.Row="1" Text="NODES" Foreground="#BFC3E8" FontSize="11" FontWeight="SemiBold" Margin="4,12,0,7"/>
 
-                    <TextBlock Grid.Row="2" Text="PLAYERS" Foreground="#8B93B8" FontSize="11" FontWeight="SemiBold" Margin="4,18,0,8"/>
-
-                    <!-- players list fills remaining space -->
-                    <Border Grid.Row="3" Background="#0F1631" CornerRadius="16" Padding="6">
+                    <!-- nodes list fills remaining space -->
+                    <Border Grid.Row="2" Background="#13184C" CornerRadius="16" Padding="6">
                         <Grid>
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                          Padding="0,0,3,0">
                                 <ItemsControl x:Name="MembersList">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Padding="12,10" Margin="2" CornerRadius="12" Background="#141C3D">
+                                            <Border Padding="11,7" Margin="2" CornerRadius="11" Background="#181A4B">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
@@ -235,12 +384,12 @@
                                                     </Grid.ColumnDefinitions>
                                                     <Ellipse Grid.Column="0" Width="10" Height="10" VerticalAlignment="Center" Fill="{Binding StatusBrush}"/>
                                                     <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                                        <TextBlock Text="{Binding Name}" Foreground="#EDF0FF" FontSize="15" FontWeight="Medium"/>
-                                                        <TextBlock Text="{Binding IP}" Foreground="#8B93B8" FontSize="12"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="#F7F6FB" FontSize="15" FontWeight="Medium"/>
+                                                        <TextBlock Text="{Binding IP}" Foreground="#BFC3E8" FontSize="12"/>
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
                                                         <TextBlock Text="{Binding StatusLabel}" Foreground="{Binding StatusBrush}" FontSize="12" HorizontalAlignment="Right"/>
-                                                        <TextBlock Text="{Binding RttText}" Foreground="#8B93B8" FontSize="11" HorizontalAlignment="Right"/>
+                                                        <TextBlock Text="{Binding RttText}" Foreground="#BFC3E8" FontSize="11" HorizontalAlignment="Right"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
@@ -248,55 +397,66 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <TextBlock x:Name="EmptyHint" Text="Waiting for friends to join with the code…"
-                                       Foreground="#5C6689" FontSize="12" Margin="12" TextAlignment="Center"
+                            <TextBlock x:Name="EmptyHint" Text="Waiting for nodes to join with the code…"
+                                       Foreground="#999DC8" FontSize="12" Margin="12" TextAlignment="Center"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Grid>
                     </Border>
 
-                    <Button Grid.Row="4" Content="Disconnect" Style="{StaticResource Ghost}" Click="Disconnect_Click"
-                            Height="50" Margin="0,16,0,0"/>
+                    <Button Grid.Row="3" Content="Disconnect" Style="{StaticResource Ghost}" Click="Disconnect_Click"
+                            Height="44" Margin="0,10,0,0"/>
                 </Grid>
             </Grid>
         </DockPanel>
 
         <!-- ===================== SETTINGS OVERLAY ===================== -->
         <Grid x:Name="SettingsOverlay" Visibility="Collapsed" Background="#D0050A18" MouseLeftButtonDown="SettingsClose_Click">
-            <Border Width="368" Background="#141C3D" CornerRadius="20" Padding="22"
+            <Border Width="368" Height="610" Background="#181A4B" CornerRadius="20" Padding="22"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    BorderBrush="#22305A" BorderThickness="1" MouseLeftButtonDown="Swallow">
-                <StackPanel>
+                    BorderBrush="#34346D" BorderThickness="1" MouseLeftButtonDown="Swallow">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              Padding="0,0,8,0">
+                  <StackPanel>
                     <Grid>
-                        <TextBlock Text="Settings" Foreground="#EDF0FF" FontSize="18" FontWeight="SemiBold"/>
-                        <TextBlock Text="✕" Foreground="#8B93B8" FontSize="14" HorizontalAlignment="Right"
+                        <TextBlock Text="Settings" Foreground="#F7F6FB" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="✕" Foreground="#BFC3E8" FontSize="14" HorizontalAlignment="Right"
                                    VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="SettingsClose_Click"/>
                     </Grid>
-                    <Border Height="1" Background="#22305A" Margin="0,14"/>
+                    <Border Height="1" Background="#34346D" Margin="0,14"/>
 
-                    <TextBlock Text="Relay mode" Foreground="#EDF0FF" FontSize="15" FontWeight="Medium"/>
+                    <TextBlock Text="Relay mode" Foreground="#F7F6FB" FontSize="15" FontWeight="Medium"/>
                     <TextBlock Text="Auto tries direct first. Off never uses relay. On forces relay for troubleshooting."
-                               TextWrapping="Wrap" Foreground="#8B93B8" FontSize="12" Margin="0,5,0,8"/>
-                    <ComboBox x:Name="RelayModeBox" Height="40" Padding="10,0" Background="#1A2547"
-                              Foreground="#EDF0FF" BorderBrush="#2A3967" SelectedValuePath="Tag">
+                               TextWrapping="Wrap" Foreground="#BFC3E8" FontSize="12" Margin="0,5,0,8"/>
+                    <ComboBox x:Name="RelayModeBox" Height="40" Style="{StaticResource DarkComboBox}"
+                              SelectedValuePath="Tag">
                         <ComboBoxItem Content="Auto — direct first, relay if needed" Tag="auto"/>
                         <ComboBoxItem Content="Off — direct connections only" Tag="off"/>
                         <ComboBoxItem Content="On — force relay" Tag="on"/>
                     </ComboBox>
 
-                    <TextBlock Text="Coordinator" Foreground="#EDF0FF" FontSize="15" FontWeight="Medium" Margin="0,15,0,0"/>
+                    <TextBlock Text="Coordinator" Foreground="#F7F6FB" FontSize="15" FontWeight="Medium" Margin="0,15,0,0"/>
                     <TextBlock Text="Change this only when using a self-hosted coordinator."
-                               TextWrapping="Wrap" Foreground="#8B93B8" FontSize="12" Margin="0,5,0,8"/>
+                               TextWrapping="Wrap" Foreground="#BFC3E8" FontSize="12" Margin="0,5,0,8"/>
                     <Border Style="{StaticResource Field}">
                         <TextBox x:Name="CoordinatorBox" Style="{StaticResource FieldText}" FontSize="12"/>
                     </Border>
 
-                    <Border Height="1" Background="#22305A" Margin="0,16"/>
-                    <TextBlock Text="Prioritize OrbitLan adapter" Foreground="#EDF0FF" FontSize="15" FontWeight="Medium"/>
-                    <TextBlock TextWrapping="Wrap" Foreground="#8B93B8" FontSize="12" Margin="0,5,0,0"
+                    <Border Height="1" Background="#34346D" Margin="0,16"/>
+                    <TextBlock Text="Performance mode" Foreground="#F7F6FB" FontSize="15" FontWeight="Medium"/>
+                    <TextBlock Text="Keeps the animated Earth and stars, but turns off the live network mesh, glow, and floating motion."
+                               TextWrapping="Wrap" Foreground="#BFC3E8" FontSize="12" Margin="0,5,0,0"/>
+                    <Button x:Name="PerformanceToggle" Content="Turn on" Style="{StaticResource Ghost}" Height="40"
+                            Margin="0,10,0,0" Click="PerformanceToggle_Click"/>
+                    <TextBlock x:Name="PerformanceStatus" Text="Currently: detailed visuals" Foreground="#BFC3E8"
+                               FontSize="11" Margin="2,6,0,0"/>
+
+                    <Border Height="1" Background="#34346D" Margin="0,14"/>
+                    <TextBlock Text="Prioritize OrbitLan adapter" Foreground="#F7F6FB" FontSize="15" FontWeight="Medium"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#BFC3E8" FontSize="12" Margin="0,5,0,0"
                                Text="Helps older games discover LAN sessions over the virtual adapter. Safe and reversible."/>
                     <Button x:Name="PriorityToggle" Content="Turn on" Style="{StaticResource Ghost}" Height="44"
                             Margin="0,12,0,0" Click="PriorityToggle_Click"/>
-                    <TextBlock x:Name="PriorityStatus" Text="Currently: off (Windows default)" Foreground="#8B93B8"
+                    <TextBlock x:Name="PriorityStatus" Text="Currently: off (Windows default)" Foreground="#BFC3E8"
                                FontSize="12" Margin="2,8,0,0" TextWrapping="Wrap"/>
 
                     <TextBlock x:Name="SettingsError" Foreground="#FF7A7A" FontSize="11" Margin="2,10,0,0"
@@ -312,9 +472,10 @@
                         <Button Grid.Column="2" Content="Save" Style="{StaticResource Ghost}" Height="42"
                                 Click="SettingsSave_Click"/>
                     </Grid>
-                    <TextBlock x:Name="VersionText" Text="OrbitLan" Foreground="#5C6689" FontSize="11"
+                    <TextBlock x:Name="VersionText" Text="OrbitLan" Foreground="#999DC8" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                </StackPanel>
+                  </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

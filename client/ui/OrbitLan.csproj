@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>OrbitLan</AssemblyName>
@@ -16,6 +17,8 @@
   <ItemGroup>
     <!-- window / taskbar icon at runtime -->
     <Resource Include="orbitlan.ico" />
+    <Resource Include="assets\earth-clouds.gif" />
+    <Resource Include="assets\earth-header-sheet.png" />
     <!-- the engine + adapter tooling ship next to the UI exe -->
     <None Include="payload\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

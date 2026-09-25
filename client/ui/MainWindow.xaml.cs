@@ -10,6 +10,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
+using Point = System.Windows.Point;
+using Application = System.Windows.Application;
+using Clipboard = System.Windows.Clipboard;
+using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using Orientation = System.Windows.Controls.Orientation;
 
 namespace OrbitLan;
 
@@ -40,6 +48,7 @@ public partial class MainWindow : Window
     readonly Updater updater = new();
     Updater.UpdateInfo? _pendingUpdate;
     bool _priority;
+    bool _performanceMode;
     string _coordinatorUrl = ProductDefaults.CoordinatorUrl;
     string _relayMode = "auto";
     readonly HashSet<string> _ranMigrations = new();
@@ -54,12 +63,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeTray();
         MembersList.ItemsSource = rows;
         NameBox.Text = Environment.UserName;
         CodeBox.Text = RandomCode();
-        SpawnStars();
         LoadPrefs();
+        SpawnStars();
+        StartVisuals();
         UpdatePriorityUI();
+        UpdatePerformanceUI();
         SupportBtn.IsEnabled = !string.IsNullOrWhiteSpace(ProductDefaults.SupportUrl);
         var v = Updater.Current;
         VersionText.Text = $"OrbitLan v{v.Major}.{v.Minor}.{Math.Max(0, v.Build)}";
@@ -109,6 +121,7 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         UpdatePriorityUI();
+        UpdatePerformanceUI();
         CoordinatorBox.Text = _coordinatorUrl;
         RelayModeBox.SelectedValue = _relayMode;
         SettingsError.Text = "";
@@ -141,6 +154,14 @@ public partial class MainWindow : Window
         {
             PriorityStatus.Text = "Couldn't change it — connect first so the OrbitLan adapter exists.";
         }
+    }
+
+    void PerformanceToggle_Click(object sender, RoutedEventArgs e)
+    {
+        _performanceMode = !_performanceMode;
+        ApplyPerformanceMode();
+        UpdatePerformanceUI();
+        SavePrefs();
     }
 
     void SettingsSave_Click(object sender, RoutedEventArgs e)
@@ -178,6 +199,14 @@ public partial class MainWindow : Window
             : "Currently: off (Windows default).";
     }
 
+    void UpdatePerformanceUI()
+    {
+        PerformanceToggle.Content = _performanceMode ? "Use detailed visuals" : "Use performance mode";
+        PerformanceStatus.Text = _performanceMode
+            ? "Currently: performance mode"
+            : "Currently: detailed visuals";
+    }
+
     void LoadPrefs()
     {
         try
@@ -191,6 +220,9 @@ public partial class MainWindow : Window
                 !string.IsNullOrWhiteSpace(url)) _coordinatorUrl = url.TrimEnd('/');
             if (n.TryGetProperty("relayMode", out var r) && r.GetString() is string relay &&
                 relay is "off" or "auto" or "on") _relayMode = relay;
+            if (n.TryGetProperty("performanceMode", out var visualMode) &&
+                visualMode.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                _performanceMode = visualMode.GetBoolean();
             if (n.TryGetProperty("ranMigrations", out var m) && m.ValueKind == JsonValueKind.Array)
                 foreach (var e in m.EnumerateArray())
                     if (e.GetString() is string s) _ranMigrations.Add(s);
@@ -208,6 +240,7 @@ public partial class MainWindow : Window
                 coordinatorURL = _coordinatorUrl,
                 relayMode = _relayMode,
                 priority = _priority,
+                performanceMode = _performanceMode,
                 ranMigrations = _ranMigrations.ToArray(),
             }));
         }
@@ -290,7 +323,9 @@ public partial class MainWindow : Window
         return sp;
     }
 
-    void Disconnect_Click(object sender, RoutedEventArgs e)
+    void Disconnect_Click(object sender, RoutedEventArgs e) => Disconnect();
+
+    void Disconnect()
     {
         engine.Stop();
         rows.Clear();
@@ -309,7 +344,9 @@ public partial class MainWindow : Window
     {
         if (st == null) return;
         MyIpText.Text = string.IsNullOrEmpty(st.MyIP) ? "—" : st.MyIP;
-        SummaryText.Text = st.Summary;
+        SummaryText.Text = st.Summary
+            .Replace("peers", "nodes", StringComparison.OrdinalIgnoreCase)
+            .Replace("peer", "node", StringComparison.OrdinalIgnoreCase);
 
         // sync rows to peers
         var seen = new HashSet<string>();
@@ -331,6 +368,7 @@ public partial class MainWindow : Window
         for (int i = rows.Count - 1; i >= 0; i--)
             if (!seen.Contains(rows[i].Name + "|" + rows[i].IP)) rows.RemoveAt(i);
 
+        UpdateNetworkNodes(st.Peers.Count(p => p.State is "direct" or "relay"));
         EmptyHint.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -371,6 +409,13 @@ public partial class MainWindow : Window
     {
         StatusText.Text = text;
         StatusDot.Fill = color;
+        UpdateTrayStatus(text);
+        SetNetworkVisualState(text switch
+        {
+            "Connecting" => "connecting",
+            "Connected" => "connected",
+            _ => "offline",
+        });
     }
 
     static string RandomCode()
@@ -422,17 +467,17 @@ public partial class MainWindow : Window
             }
         }
 
-        // one gentle drift for the whole field: a single GPU-composited transform,
-        // slow auto-reverse so it wanders without ever showing an edge. Near-zero CPU.
+        // One composited transform keeps the field inexpensive; the shorter durations make the
+        // movement visible without turning the background into a distraction.
         var drift = new TranslateTransform();
         StarsCanvas.RenderTransform = drift;
-        drift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0, -22, TimeSpan.FromSeconds(48))
+        drift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0, -28, TimeSpan.FromSeconds(22))
         { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-        drift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, -14, TimeSpan.FromSeconds(67))
+        drift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, -17, TimeSpan.FromSeconds(31))
         { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
     }
 
     void Window_Drag(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) DragMove(); }
-    void Minimize_Click(object sender, MouseButtonEventArgs e) { e.Handled = true; WindowState = WindowState.Minimized; }
+    void Minimize_Click(object sender, MouseButtonEventArgs e) { e.Handled = true; HideToTray(); }
     void Close_Click(object sender, MouseButtonEventArgs e) { e.Handled = true; Close(); }
 }
