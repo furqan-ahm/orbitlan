@@ -1,12 +1,10 @@
-<p align="center">
-  <img src="website/assets/earth-clouds.gif" width="220" alt="OrbitLan pixel-art Earth spinning beneath moving clouds">
-</p>
-
-<h1 align="center">OrbitLan</h1>
+<h1 align="center">
+  <img src="website/assets/earth-clouds.gif" width="64" alt="O">rbitLan
+</h1>
 
 <p align="center">
-  <strong>LAN games. Any distance. One short code.</strong><br>
-  A small, free peer-to-peer virtual LAN built for bringing old game nights back.
+  <strong>A private Virtual LAN for everyone.</strong><br>
+  Simple enough for game night, useful for anything that works over a local network.
 </p>
 
 <p align="center">
@@ -21,56 +19,56 @@
 
 ## Why I made this
 
-I hadn't worked on anything just for fun in a while, so I started building OrbitLan in
-my free time. I wanted an easy way to play the old games I grew up with—especially
-**Need for Speed: Most Wanted** and **Battlefield 1942**—with friends again.
+I hadn't built anything just for fun in a while. I made OrbitLan in my free time so I
+could play old games like **Need for Speed: Most Wanted** and **Battlefield 1942** with
+friends again—without accounts or a complicated VPN setup.
 
-I didn't want everyone to create accounts or spend half the evening wrestling with VPN
-settings. With OrbitLan, one person creates a room, shares a short code, and the game
-sees everyone as if they were connected to the same router.
-
-That's it. A small project for old games, good friends, and one more match.
+Create a room, share a short code, and your devices behave as if they were connected to
+the same router.
 
 ## What it is
 
-OrbitLan puts you and your friends on one virtual local network over the internet. Old
-and new games that only support **LAN / direct-IP** multiplayer — the ones with no online
-servers, or servers long gone — just work again, because to the game you're all on the
-same subnet (`10.69.0.x`).
+OrbitLan connects trusted devices through an encrypted virtual local network over the
+internet. Each device gets an address on the same private subnet (`10.69.0.x`) and can
+communicate directly with the others.
 
-It's the Hamachi/ZeroTier idea, rebuilt to be simple, fast, and free.
+Gaming was the reason I built it, but it is not limited to games. Direct-IP apps,
+development servers, private tools, and other software that works over an IP-based LAN
+can technically use OrbitLan too. Application discovery and firewall behavior can vary.
+
+It is the Hamachi/ZeroTier idea, rebuilt to be simple, lightweight, and free.
 
 ## Features
 
-- **Direct peer-to-peer.** Game traffic flows straight between players (~10 ms on good
-  paths). It never routes through a middle server, so there's no added lag and no bandwidth
-  cost to anyone.
+- **Direct peer-to-peer.** Network traffic flows straight between devices (~10 ms on good
+  paths). It does not route through a middle server, avoiding extra relay latency and server
+  bandwidth use.
 - **Encrypted.** Every peer-to-peer link is encrypted (ChaCha20-Poly1305).
 - **Just a code.** One person creates a network and shares a join code. That's the whole
   setup — no accounts, no logins.
-- **Works through tough NATs.** Direct connections are attempted first; when two players
+- **Works through tough NATs.** Direct connections are attempted first; when two peers
   are both behind strict NATs, an optional encrypted relay keeps them connected.
-- **Free.** Direct play is free forever. The relay runs from a shared free pool, and you
-  can turn the relay off entirely for a guaranteed-free, direct-only experience.
+- **Free.** Direct connections are free forever. The relay runs from a shared free pool,
+  and you can turn the relay off entirely for a guaranteed-free, direct-only experience.
 
 ## How it works
 
 ```
-   You ──────────── direct P2P (encrypted) ──────────── Friend
-     \                                                   /
-      \── coordinator (setup only: who's here + how to  ─┘
-          reach each other) — never sees game traffic
+ Your device ────── direct P2P (encrypted) ────── Other device
+       \                                              /
+        \── coordinator (who is here + how to connect) ─┘
+            never sees application traffic
 ```
 
 1. The **coordinator** (a Cloudflare Worker) tells peers who's in the network and helps
    them find each other. It's used only to *connect*.
-2. Peers then talk **directly**, encrypted, over a virtual network adapter. Your games
-   send LAN traffic to `10.69.0.x` and it reaches the right friend.
+2. Peers then talk **directly**, encrypted, over a virtual network adapter. Applications
+   send LAN traffic to `10.69.0.x` and it reaches the right device.
 3. If a direct link truly can't form, an optional **relay** carries the encrypted traffic
    as a fallback.
 
-The coordinator and relay are used only to establish the connection — the gameplay itself
-is peer-to-peer.
+The coordinator helps establish connections and never sees application traffic. If a relay
+is required, it forwards encrypted packets but cannot read them.
 
 ## Download & install (Windows)
 
@@ -80,6 +78,43 @@ network service with one Windows approval. After that, open OrbitLan from the St
 normally — the UI and notification-area app never request elevation. A
 [portable package](https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Portable.zip)
 is available too.
+
+## Build from source
+
+The native Windows client requires:
+
+- Windows 10 or 11, x64
+- Git
+- Go (the version declared in [`client/engine/go.mod`](client/engine/go.mod))
+- Visual Studio with the **Desktop development with C++** workload and Windows SDK
+- CMake 3.24 or newer
+- PowerShell 5.1 or newer
+
+From a Developer PowerShell, run:
+
+```powershell
+git clone https://github.com/furqan-ahm/orbitlan.git
+cd orbitlan
+powershell -ExecutionPolicy Bypass -File .\scripts\build-native-release.ps1
+```
+
+The script tests and builds the Go network engine, native C++ client, Windows service,
+setup helper, and installer. Finished packages are written to:
+
+- `dist\OrbitLan-Installer.exe`
+- `dist\OrbitLan-Portable.zip`
+
+To work on the Cloudflare coordinator locally, install Node.js 22 or newer and run:
+
+```powershell
+cd coordinator
+npm ci
+npm run typecheck
+npm run dev
+```
+
+More details are available in the [native client](client/native/README.md) and
+[coordinator](coordinator/README.md) documentation.
 
 ## Relay & privacy
 
@@ -101,8 +136,8 @@ You can run the entire stack yourself for free — no dependency on anyone else'
 
 ## Support
 
-OrbitLan is free and always will be for direct play. I build and maintain it in my free
-time, while the optional shared relay has a real running cost.
+OrbitLan is free and always will be for direct connections. I build and maintain it in
+my free time, while the optional shared relay has a real running cost.
 
 If you guys like OrbitLan and it helps bring an old game night back to life, please
 consider **[supporting me on Patreon](https://patreon.com/orbitlan)**. It is completely
