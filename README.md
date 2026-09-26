@@ -1,9 +1,35 @@
+<p align="center">
+  <img src="website/assets/earth-clouds.gif" width="220" alt="OrbitLan pixel-art Earth spinning beneath moving clouds">
+</p>
+
 <h1 align="center">OrbitLan</h1>
 
-<p align="center">A free, peer-to-peer virtual LAN for gaming with friends across cities and ISPs.<br>
-Create a network, share a code, and your games see everyone as if they were on the same router.</p>
+<p align="center">
+  <strong>LAN games. Any distance. One short code.</strong><br>
+  A small, free peer-to-peer virtual LAN built for bringing old game nights back.
+</p>
+
+<p align="center">
+  <a href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a>
+  ·
+  <a href="https://orbitlan-web.furqan-ahm.workers.dev">Website</a>
+  ·
+  <a href="https://patreon.com/orbitlan">Support the project</a>
+</p>
 
 ---
+
+## Why I made this
+
+I hadn't worked on anything just for fun in a while, so I started building OrbitLan in
+my free time. I wanted an easy way to play the old games I grew up with—especially
+**Need for Speed: Most Wanted** and **Battlefield 1942**—with friends again.
+
+I didn't want everyone to create accounts or spend half the evening wrestling with VPN
+settings. With OrbitLan, one person creates a room, shares a short code, and the game
+sees everyone as if they were connected to the same router.
+
+That's it. A small project for old games, good friends, and one more match.
 
 ## What it is
 
@@ -75,9 +101,12 @@ You can run the entire stack yourself for free — no dependency on anyone else'
 
 ## Support
 
-OrbitLan is free and always will be for direct play. If it's useful to you and you'd like
-to help cover the shared relay pool, there's a **Support** button in the app — entirely
-optional.
+OrbitLan is free and always will be for direct play. I build and maintain it in my free
+time, while the optional shared relay has a real running cost.
+
+If you guys like OrbitLan and it helps bring an old game night back to life, please
+consider **[supporting me on Patreon](https://patreon.com/orbitlan)**. It is completely
+optional, but it would genuinely mean a lot and help me keep working on it.
 
 ## Repository layout
 
