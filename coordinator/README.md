@@ -9,9 +9,9 @@ points at it by changing only its endpoint URL.
   instead of a single VM in one region.
 - **Scale**: one Durable Object per network (join code) — isolated state, horizontal
   scale, no shared bottleneck.
-- **Cost**: designed for the Workers free plan (currently 100,000 Worker and Durable Object
-  requests per day, with daily hard limits). The data path never touches it — gameplay is
-  peer-to-peer.
+- **Cost**: designed for the Workers free plan. Check Cloudflare's current Workers and
+  Durable Objects limits before deployment. The data path never touches the coordinator —
+  gameplay is peer-to-peer unless a TURN relay is needed.
 
 ## API (unchanged from the Go coordinator)
 | Method | Path | Body / Query | Returns |
@@ -25,16 +25,15 @@ points at it by changing only its endpoint URL.
 `turn` is included only when relay is enabled (see below).
 
 ## Relay policy (the only thing that can cost money)
-`RELAY_ENABLED` (a plain var in `wrangler.toml`) is the global switch for the shared
-free relay pool:
-- `"true"` (default) — hand out Cloudflare TURN credentials; direct-first, relay
-  fallback.
+`RELAY_ENABLED` (a plain var in `wrangler.toml`) is the global relay switch:
+- `"true"` (default) — hand out short-lived Cloudflare TURN credentials, or credentials
+  for a configured self-hosted coturn server; direct-first, relay fallback.
 - `"false"` — never hand out TURN; **direct-only for everyone** (the free-forever mode).
 
-**Keep billing OFF on the Cloudflare TURN side** and it hard-caps at the free
-allowance (1000 GB/mo) instead of ever charging you — the pool simply stops relaying,
-and clients fall back to direct-only. Clients also have their own relay Off/Auto/On
-toggle, so a user can force direct-only regardless of this server setting.
+Cloudflare Realtime TURN currently includes a shared monthly free allowance and charges
+for egress beyond it. Confirm the current pricing and configure your account's spending
+controls before enabling it. Clients also have their own relay Off/Auto/On toggle, so a
+user can force direct-only regardless of this server setting.
 
 ## Deploy
 ```bash
@@ -49,6 +48,11 @@ dashboard if you want a stable branded URL.
 
 The official deployment is `https://orbitlan.furqan-ahm.workers.dev`.
 
+For direct-only operation, set `RELAY_ENABLED = "false"` and deploy without TURN
+secrets. To use a self-hosted coturn relay instead, set `TURN_URL` in `wrangler.toml`,
+store its REST authentication secret with `npx wrangler secret put TURN_SHARED_SECRET`,
+and redeploy. `TURN_URL` takes priority when both relay providers are configured.
+
 ## Local development
 ```bash
 cp .dev.vars.example .dev.vars   # fill in your TURN key id + token
@@ -61,7 +65,9 @@ curl -s "localhost:8787/net/poll?code=demo&peerID=A&version=0"
 ```
 
 ## Self-hosting
-This is exactly what a self-hoster deploys to run their own free, unlimited
-coordinator. Combined with their own [coturn](https://github.com/coturn/coturn) relay
-and the client's configurable endpoints, a community can run OrbitLan entirely on
-their own infrastructure at no cost to anyone else.
+This is what a self-hoster deploys to run their own coordinator. It can operate
+direct-only, use Cloudflare Realtime TURN, or issue short-lived credentials for a
+self-hosted [coturn](https://github.com/coturn/coturn) relay. The current coordinator
+depends on Cloudflare Durable Objects; an Oracle VM can host coturn, but is not a
+drop-in replacement for the coordinator. See the complete
+[build and self-hosting guide](https://orbitlan.site/guides/self-host-orbitlan/).

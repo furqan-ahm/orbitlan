@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build and Self-Host OrbitLan | Cloudflare and Oracle Guide</title>
+<meta name="description" content="Build OrbitLan from source and deploy your own coordinator with Cloudflare Workers, plus an optional Cloudflare or Oracle Cloud TURN relay.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/guides/self-host-orbitlan/">
+<link rel="icon" type="image/webp" href="../../assets/earthspin-transparent.webp">
+<link rel="stylesheet" href="../guide.css">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="Build and Self-Host OrbitLan">
+<meta property="og:description" content="Deploy an OrbitLan coordinator and choose direct-only, Cloudflare TURN, or an Oracle-hosted coturn relay.">
+<meta property="og:url" content="https://orbitlan.site/guides/self-host-orbitlan/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Build and Self-Host OrbitLan",
+      "description": "Build the Windows client and deploy an OrbitLan coordinator with Cloudflare Workers, with Cloudflare TURN or an Oracle-hosted coturn relay.",
+      "datePublished": "2026-09-27",
+      "dateModified": "2026-09-27",
+      "mainEntityOfPage": "https://orbitlan.site/guides/self-host-orbitlan/",
+      "image": "https://orbitlan.site/assets/orbitlan-logo.png",
+      "author": {"@type": "Person", "name": "Furqan Ahmed", "url": "https://github.com/furqan-ahm"},
+      "publisher": {"@type": "Organization", "name": "OrbitLan", "url": "https://orbitlan.site/"}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "OrbitLan", "item": "https://orbitlan.site/"},
+        {"@type": "ListItem", "position": 2, "name": "Build and self-host OrbitLan", "item": "https://orbitlan.site/guides/self-host-orbitlan/"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="../../index.html"><img src="../../assets/earthspin-transparent.webp" width="35" height="35" alt=""><span>rbitLan</span></a>
+    <div class="nav-links"><a href="../../index.html#how">How it works</a><a href="https://github.com/furqan-ahm/orbitlan">Source</a><a class="download" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download</a></div>
+  </nav>
+</header>
+<main>
+  <header class="guide-head">
+    <div class="wrap">
+      <p class="eyebrow">OrbitLan guide · Self-hosting</p>
+      <h1>Build and self-host OrbitLan</h1>
+      <p class="lede">Build the Windows client, run your own room coordinator, and choose direct-only networking, Cloudflare's managed relay, or coturn on an Oracle Cloud VM.</p>
+    </div>
+  </header>
+  <article class="article">
+    <div class="wrap article-body">
+      <p class="meta">Written by Furqan Ahmed · Updated September 27, 2026</p>
+
+      <div class="note"><strong>Know what each part does.</strong> The coordinator manages temporary room membership and connection signaling. Game traffic normally travels directly between peers. A TURN relay carries encrypted packets only when a direct path cannot form.</div>
+
+      <h2>Choose a deployment</h2>
+      <table>
+        <thead><tr><th>Setup</th><th>What it hosts</th><th>Best for</th></tr></thead>
+        <tbody>
+          <tr><td>Cloudflare, direct-only</td><td>Worker + Durable Objects</td><td>The simplest setup with no relay bandwidth to operate.</td></tr>
+          <tr><td>Cloudflare managed</td><td>Worker + Durable Objects + Realtime TURN</td><td>Global managed fallback with the least server maintenance.</td></tr>
+          <tr><td>Cloudflare + Oracle</td><td>Cloudflare coordinator + coturn on an Oracle VM</td><td>People who want to own the relay and its bandwidth path.</td></tr>
+        </tbody>
+      </table>
+      <p>The current coordinator uses Cloudflare Durable Objects, so an Oracle VM is an alternative relay host—not a drop-in replacement for the coordinator. A completely Oracle-only control plane is not supported by this release.</p>
+
+      <h2>Requirements</h2>
+      <h3>For the coordinator</h3>
+      <ul>
+        <li>A Cloudflare account with Workers enabled.</li>
+        <li>Git and Node.js 22 or newer on your development machine.</li>
+        <li>The OrbitLan source from GitHub.</li>
+      </ul>
+      <h3>For a Windows client build</h3>
+      <ul>
+        <li>64-bit Windows 10 or Windows 11.</li>
+        <li>Go matching <code>client/engine/go.mod</code>.</li>
+        <li>Visual Studio with the <strong>Desktop development with C++</strong> workload and a Windows SDK.</li>
+        <li>CMake 3.24 or newer and PowerShell 5.1 or newer.</li>
+      </ul>
+
+      <h2>1. Deploy the coordinator to Cloudflare</h2>
+      <p>Clone the repository and install the coordinator's locked dependencies:</p>
+      <pre><code>git clone https://github.com/furqan-ahm/orbitlan.git
+cd orbitlan/coordinator
+npm ci
+npm run typecheck
+npx wrangler login</code></pre>
+      <p>Open <code>wrangler.toml</code> and give <code>name</code> a unique value, such as <code>my-orbitlan</code>. Keep the Durable Object binding and migration unchanged.</p>
+
+      <h3>Direct-only setup</h3>
+      <p>Set <code>RELAY_ENABLED = "false"</code> in <code>wrangler.toml</code>. No TURN credentials are required. Deploy and test the health endpoint:</p>
+      <pre><code>npx wrangler deploy
+curl https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev/net/health</code></pre>
+      <p>The response should be <code>ok</code>. Cloudflare currently makes SQLite-backed Durable Objects available on its Free and Paid plans; check the <a href="https://developers.cloudflare.com/durable-objects/">current Durable Objects documentation</a> and limits before relying on any particular allowance.</p>
+
+      <h2>2A. Add Cloudflare's managed TURN relay</h2>
+      <ol class="steps">
+        <li><strong>Create a TURN key.</strong> In the Cloudflare dashboard, open Realtime → TURN and create a key.</li>
+        <li><strong>Keep both values private.</strong> Copy the TURN key ID and its API token. They are server-side secrets, not client settings.</li>
+        <li><strong>Store the secrets with Wrangler.</strong> Run the commands below and paste each value when prompted.</li>
+        <li><strong>Enable and redeploy.</strong> Confirm <code>RELAY_ENABLED = "true"</code> in <code>wrangler.toml</code>, then deploy again.</li>
+      </ol>
+      <pre><code>npx wrangler secret put CF_TURN_KEY_ID
+npx wrangler secret put CF_TURN_API_TOKEN
+npx wrangler deploy</code></pre>
+      <p>The coordinator exchanges the long-lived key for short-lived client credentials. Cloudflare documents a shared monthly free allowance for Realtime services and charges beyond it; verify the <a href="https://developers.cloudflare.com/realtime/sfu/platform/pricing/">current Realtime pricing</a> before enabling relay for a public community.</p>
+
+      <h2>2B. Use coturn on Oracle Cloud instead</h2>
+      <p>This option still uses the Cloudflare Worker for rooms and signaling, but sends relay traffic through a VM you control. Oracle's Free Tier and capacity rules can change, and bandwidth can become billable, so confirm the <a href="https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier.htm">current Oracle Free Tier terms</a> first.</p>
+
+      <h3>Create and open the VM</h3>
+      <ol>
+        <li>Create an Ubuntu VM in a public subnet and assign it a public IPv4 address. Save the SSH private key.</li>
+        <li>In the VM's VCN security list or network security group, allow inbound UDP <code>3478</code> and UDP <code>49160–49260</code>.</li>
+        <li>SSH to the VM as <code>ubuntu</code>, then install coturn.</li>
+      </ol>
+      <pre><code>ssh -i PATH_TO_KEY ubuntu@PUBLIC_IPV4
+sudo apt update
+sudo apt install -y coturn
+openssl rand -hex 32</code></pre>
+      <p>Keep the generated secret. Find the VM's private IPv4 address with <code>hostname -I</code>, then edit <code>/etc/turnserver.conf</code>:</p>
+      <pre><code>listening-port=3478
+fingerprint
+use-auth-secret
+static-auth-secret=PASTE_THE_GENERATED_SECRET
+realm=orbitlan
+external-ip=PUBLIC_IPV4/PRIVATE_IPV4
+min-port=49160
+max-port=49260
+no-cli
+no-multicast-peers</code></pre>
+      <p>Match the operating-system firewall to the same narrow port range, then enable coturn:</p>
+      <pre><code>sudo ufw allow 3478/udp
+sudo ufw allow 49160:49260/udp
+sudo systemctl enable --now coturn
+sudo systemctl status coturn</code></pre>
+      <p>If the Ubuntu package is disabled by default, set <code>TURNSERVER_ENABLED=1</code> in <code>/etc/default/coturn</code> and restart the service. Coturn's own project documents the package and container installation options in its <a href="https://github.com/coturn/coturn">official repository</a>.</p>
+
+      <h3>Connect coturn to the coordinator</h3>
+      <p>In <code>coordinator/wrangler.toml</code>, keep relay enabled and add the VM address:</p>
+      <pre><code>RELAY_ENABLED = "true"
+TURN_URL = "turn:PUBLIC_IPV4:3478?transport=udp"</code></pre>
+      <p>Store the same coturn secret in Cloudflare and redeploy:</p>
+      <pre><code>npx wrangler secret put TURN_SHARED_SECRET
+npx wrangler deploy</code></pre>
+      <p><code>TURN_URL</code> takes priority over Cloudflare TURN when both are configured. Never commit <code>TURN_SHARED_SECRET</code> or place it in the Windows app.</p>
+
+      <h2>3. Point OrbitLan at your coordinator</h2>
+      <ol class="steps">
+        <li><strong>Open Settings</strong> in OrbitLan.</li>
+        <li><strong>Replace Coordinator</strong> with the HTTPS Worker URL printed by Wrangler. Do this on every participating PC.</li>
+        <li><strong>Leave Relay on Auto</strong> for direct-first connections with fallback, or choose Off to guarantee direct-only behavior.</li>
+        <li><strong>Test from different networks.</strong> Create a room on one PC, join from another internet connection, and confirm both nodes show a working connection.</li>
+      </ol>
+      <p>All members of a room must use the same coordinator. A custom domain is optional, but it gives you a stable URL if you later rename the Worker.</p>
+
+      <h2>4. Build the Windows client</h2>
+      <p>Open a Developer PowerShell in the repository root. The build script tests and packages the Go engine, native C++ UI, Windows service, setup helper, installer, and portable archive:</p>
+      <pre><code>powershell -ExecutionPolicy Bypass -File .\scripts\build-native-release.ps1</code></pre>
+      <p>Community outputs are written to <code>dist\OrbitLan-Installer.exe</code> and <code>dist\OrbitLan-Portable.zip</code>. The optional Supporter flavor is built from the same MIT-licensed source:</p>
+      <pre><code>powershell -ExecutionPolicy Bypass -File .\scripts\build-native-release.ps1 -Edition Supporter</code></pre>
+      <div class="note"><strong>Unsigned local builds trigger Windows warnings.</strong> The script supports a code-signing certificate through <code>-SigningThumbprint</code>, but a certificate is not required for personal testing.</div>
+
+      <h2>Security and operating notes</h2>
+      <ul>
+        <li>Treat room codes as temporary shared secrets and create a new room when membership should change.</li>
+        <li>Do not publish TURN keys, API tokens, or coturn shared secrets. Use Wrangler secrets.</li>
+        <li>A relay forwards encrypted OrbitLan packets but consumes server bandwidth. Monitor usage and keep a narrow relay port range.</li>
+        <li>Keep the Worker dependencies, coturn package, and VM operating system patched.</li>
+        <li>Direct peers learn one another's public network addresses during ICE. Self-hosting does not change that peer-to-peer behavior.</li>
+      </ul>
+
+      <h2>Useful official references</h2>
+      <ul class="source-list">
+        <li><a href="https://developers.cloudflare.com/workers/wrangler/commands/">Cloudflare Wrangler commands</a></li>
+        <li><a href="https://developers.cloudflare.com/realtime/turn/generate-credentials/">Cloudflare TURN credential generation</a></li>
+        <li><a href="https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/launchinginstance.htm">Oracle: creating a compute instance</a></li>
+        <li><a href="https://github.com/coturn/coturn">Coturn official source and installation notes</a></li>
+      </ul>
+
+      <div class="guide-links">
+        <strong>Related guides</strong>
+        <a href="../play-lan-games-online/">How to play LAN games online</a>
+        <a href="../minecraft-java-without-port-forwarding/">Minecraft Java without port forwarding</a>
+        <a href="../hamachi-alternative/">A simple open-source Hamachi alternative</a>
+      </div>
+
+      <section class="cta">
+        <h2>Read the source before you deploy</h2>
+        <p>OrbitLan is MIT licensed. Review the coordinator, client, and architecture notes, then adapt the deployment to your own risk and bandwidth limits.</p>
+        <div class="buttons"><a class="button" href="https://github.com/furqan-ahm/orbitlan">View source</a><a class="button secondary" href="https://github.com/furqan-ahm/orbitlan/issues">Ask for help</a></div>
+      </section>
+    </div>
+  </article>
+</main>
+<footer><div class="wrap footer-row"><span>OrbitLan by <a href="https://github.com/furqan-ahm" rel="me">Furqan Ahmed</a> · open source · MIT</span><span><a href="../../index.html">Home</a><a href="https://github.com/furqan-ahm/orbitlan/issues">Get help</a><a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Support</a></span></div></footer>
+</body>
+</html>

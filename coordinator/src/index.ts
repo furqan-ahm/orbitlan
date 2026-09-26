@@ -12,21 +12,22 @@
  *   GET  /net/health                         -> "ok"
  *
  * Each network (join code) maps to one Durable Object, so state is isolated and
- * scales horizontally at zero cost. Signaling is ephemeral and in-memory: members
+ * scales horizontally. Signaling is ephemeral and in-memory: members
  * poll continuously, which keeps their network's DO warm; an emptied network's DO
  * simply evicts, which is the correct state (no members).
  *
- * Relay (the only thing that can cost money) is handed out only when RELAY_ENABLED
- * is "true". Off => direct-only, the free-forever mode. Keep billing OFF on the
- * Cloudflare TURN side and it hard-caps at the free allowance instead of charging.
+ * Relay credentials are handed out only when RELAY_ENABLED is "true". Off means
+ * direct-only. Operators remain responsible for their provider's usage and costs.
  */
 
 export interface Env {
   NETWORK: DurableObjectNamespace;
   RELAY_ENABLED: string;      // "true" | "false" — global relay kill-switch (free-pool safety)
   MAX_MEMBERS: string;        // generous per-network cap, e.g. "32"
-  CF_TURN_KEY_ID: string;     // secret (wrangler secret put)
-  CF_TURN_API_TOKEN: string;  // secret (wrangler secret put)
+  CF_TURN_KEY_ID?: string;     // secret (wrangler secret put)
+  CF_TURN_API_TOKEN?: string;  // secret (wrangler secret put)
+  TURN_URL?: string;           // optional self-hosted coturn URL
+  TURN_SHARED_SECRET?: string; // optional coturn REST secret (wrangler secret put)
 }
 
 const JSON_HEADERS = { "content-type": "application/json" } as const;
@@ -359,19 +360,42 @@ export class Network {
     return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
   }
 
-  // turn mints (and caches) a Cloudflare TURN credential for this network.
-  // Cached 23h against a 24h TTL, so any client always receives >=1h of validity.
+  // turn mints (and caches) a short-lived credential for either a self-hosted
+  // coturn relay or Cloudflare Realtime TURN. Cached 23h against a 24h TTL.
   private async turn(): Promise<{ url: string; username: string; credential: string } | null> {
-    const url = "turn:turn.cloudflare.com:3478?transport=udp";
     const now = Date.now();
     if (this.turnUser && now < this.turnExpiry) {
-      return { url, username: this.turnUser, credential: this.turnCred };
+      return { url: this.env.TURN_URL || "turn:turn.cloudflare.com:3478?transport=udp",
+               username: this.turnUser, credential: this.turnCred };
     }
+
+    // coturn's REST authentication uses expiry:user as the username and a
+    // base64 HMAC-SHA1 of that username as the temporary password.
+    const selfHostedURL = this.env.TURN_URL?.trim();
+    const sharedSecret = this.env.TURN_SHARED_SECRET;
+    if (selfHostedURL && sharedSecret) {
+      const username = `${Math.floor(now / 1000) + 86400}:orbitlan`;
+      const key = await crypto.subtle.importKey(
+        "raw", new TextEncoder().encode(sharedSecret),
+        { name: "HMAC", hash: "SHA-1" }, false, ["sign"],
+      );
+      const signature = new Uint8Array(await crypto.subtle.sign(
+        "HMAC", key, new TextEncoder().encode(username),
+      ));
+      let binary = "";
+      for (const byte of signature) binary += String.fromCharCode(byte);
+      this.turnUser = username;
+      this.turnCred = btoa(binary);
+      this.turnExpiry = now + 23 * 60 * 60 * 1000;
+      return { url: selfHostedURL, username, credential: this.turnCred };
+    }
+
+    const url = "turn:turn.cloudflare.com:3478?transport=udp";
     const keyID = this.env.CF_TURN_KEY_ID, token = this.env.CF_TURN_API_TOKEN;
     if (!keyID || !token) return null;
     try {
       const r = await fetch(
-        `https://rtc.live.cloudflare.com/v1/turn/keys/${keyID}/credentials/generate`,
+        `https://rtc.live.cloudflare.com/v1/turn/keys/${keyID}/credentials/generate-ice-servers`,
         {
           method: "POST",
           headers: { authorization: "Bearer " + token, "content-type": "application/json" },
@@ -380,7 +404,9 @@ export class Network {
       );
       if (!r.ok) return null;
       const o = (await r.json()) as any;
-      const u = o?.iceServers?.username, c = o?.iceServers?.credential;
+      const servers = Array.isArray(o?.iceServers) ? o.iceServers : [o?.iceServers];
+      const relay = servers.find((server: any) => server?.username && server?.credential);
+      const u = relay?.username, c = relay?.credential;
       if (!u || !c) return null;
       this.turnUser = u; this.turnCred = c;
       this.turnExpiry = now + 23 * 60 * 60 * 1000;

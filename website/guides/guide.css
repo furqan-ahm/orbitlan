@@ -108,6 +108,31 @@ h1 {
   color: #2a2c55;
   font-size: .9em;
 }
+.article pre {
+  margin: 18px 0 26px;
+  padding: 18px 20px;
+  overflow-x: auto;
+  border-radius: 9px;
+  color: #eef0ff;
+  background: #171a46;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.article pre code { padding: 0; color: inherit; background: transparent; }
+.article table {
+  width: 100%;
+  margin: 20px 0 30px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.article th, .article td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.article th { color: var(--ink); background: #eeedf6; }
+.article .source-list { font-size: 15px; }
 .note {
   margin: 28px 0;
   padding: 20px 22px;
@@ -182,4 +207,5 @@ footer { padding: 28px 0; color: #afb2d1; background: #17173f; font-size: 13px; 
   .buttons { flex-direction: column; }
   .footer-row { flex-direction: column; }
   .footer-row a { margin: 0 18px 0 0; }
+  .article table { display: block; overflow-x: auto; }
 }

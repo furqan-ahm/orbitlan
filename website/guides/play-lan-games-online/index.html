@@ -26,7 +26,7 @@
       "headline": "How to Play LAN Games Online With Friends",
       "description": "A practical guide to playing compatible LAN games over the internet with a virtual LAN.",
       "datePublished": "2026-09-26",
-      "dateModified": "2026-09-26",
+      "dateModified": "2026-09-27",
       "mainEntityOfPage": "https://orbitlan.site/guides/play-lan-games-online/",
       "image": "https://orbitlan.site/assets/orbitlan-logo.png",
       "author": {"@type": "Person", "name": "Furqan Ahmed", "url": "https://github.com/furqan-ahm"},
@@ -60,7 +60,7 @@
   </header>
   <article class="article">
     <div class="wrap article-body">
-      <p class="meta">Written by Furqan Ahmed · Updated September 26, 2026</p>
+      <p class="meta">Written by Furqan Ahmed · Updated September 27, 2026</p>
       <p>Many older multiplayer games were built for a room full of PCs connected to one router. A virtual LAN carries that local network traffic between trusted computers over the internet, so the game's LAN or direct-IP mode can work across different homes.</p>
       <p>OrbitLan is one way to create that network on Windows. It gives each member a private <code>10.69.0.x</code> address, tries to connect peers directly, encrypts traffic between them, and can use a relay when a direct path is unavailable.</p>
 
@@ -85,6 +85,8 @@
       <h2>If the game cannot see the host</h2>
       <h3>Use direct IP</h3>
       <p>LAN discovery often relies on broadcast packets and game-specific behavior. Copy the host's OrbitLan IP from the app and use the game's “Direct Connect,” “Connect to IP,” or equivalent option. Add the game's port when it asks for one.</p>
+      <h3>Prioritize the OrbitLan adapter</h3>
+      <p>If a game keeps choosing Wi-Fi or Ethernet instead of the virtual LAN, open <strong>OrbitLan → Settings</strong> and turn on <strong>Prioritize OrbitLan adapter</strong>. This gives the OrbitLan adapter a lower Windows interface metric while you are connected, which can help software that simply picks the highest-priority network interface. Leave it off when you do not need it; direct IP is still the clearest first test.</p>
       <h3>Check Windows Firewall</h3>
       <p>Allow the game on private networks on both PCs. If Windows prompted when the game first hosted a match, confirm that private-network access was enabled. Avoid disabling the firewall entirely.</p>
       <h3>Match the game version</h3>
@@ -96,6 +98,7 @@
         <strong>Related guides</strong>
         <a href="../minecraft-java-without-port-forwarding/">Minecraft Java without port forwarding</a>
         <a href="../hamachi-alternative/">A simple open-source Hamachi alternative</a>
+        <a href="../self-host-orbitlan/">Build and self-host OrbitLan</a>
       </div>
 
       <section class="cta">

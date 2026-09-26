@@ -31,6 +31,9 @@ head_sampling_rate = 0.01
 [vars]
 RELAY_ENABLED = "true"   # "false" => direct-only for everyone (free-pool safety switch)
 MAX_MEMBERS = "32"       # generous per-network cap
+# To use your own coturn relay instead of Cloudflare TURN, add a TURN_URL here
+# and store its REST secret with: npx wrangler secret put TURN_SHARED_SECRET
+# TURN_URL = "turn:203.0.113.10:3478?transport=udp"
 
 # One Durable Object class = one network per join code.
 [[durable_objects.bindings]]

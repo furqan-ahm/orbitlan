@@ -1,3 +1,6 @@
 # Copy to `.dev.vars` for local `wrangler dev` (gitignored — never commit real secrets).
 CF_TURN_KEY_ID = "your-cloudflare-turn-key-id"
 CF_TURN_API_TOKEN = "your-cloudflare-turn-api-token"
+
+# Or use a self-hosted coturn relay. Set TURN_URL in wrangler.toml as well.
+# TURN_SHARED_SECRET = "the-same-secret-used-by-coturn"

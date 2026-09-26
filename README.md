@@ -85,6 +85,7 @@ New to virtual LANs? These short guides cover the common setups:
 - [Play compatible LAN games online with friends](https://orbitlan.site/guides/play-lan-games-online/)
 - [Play Minecraft Java without router port forwarding](https://orbitlan.site/guides/minecraft-java-without-port-forwarding/)
 - [Use OrbitLan as a simple open-source Hamachi alternative](https://orbitlan.site/guides/hamachi-alternative/)
+- [Build and self-host OrbitLan with Cloudflare or an Oracle relay](https://orbitlan.site/guides/self-host-orbitlan/)
 
 ## Community and Supporter editions
 
@@ -186,10 +187,13 @@ More details are available in the [native client](client/native/README.md) and
 You can run the entire stack yourself for free — no dependency on anyone else's servers:
 
 - **Coordinator**: deploy [`coordinator/`](coordinator/) to your own Cloudflare account
-  (free tier). See its [README](coordinator/README.md).
-- **Relay**: configure that coordinator with your own Cloudflare TURN key. Direct-only mode
-  needs no relay account at all.
+  (subject to the current Workers limits). See its [README](coordinator/README.md).
+- **Relay**: configure that coordinator with your own Cloudflare TURN key, or connect it
+  to coturn on an Oracle Cloud VM. Direct-only mode needs no relay account at all.
 - **Client**: set your coordinator endpoint in Settings.
+
+The website's [complete self-hosting guide](https://orbitlan.site/guides/self-host-orbitlan/)
+covers requirements, client builds, both relay choices, firewall rules, and verification.
 
 ## Support
 
