@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="website/assets/earth-clouds.gif" width="64" alt="O">rbitLan
+  <img src="website/assets/earth-clouds.gif" width="40" align="texttop" alt="O">rbitLan
 </h1>
 
 <p align="center">
