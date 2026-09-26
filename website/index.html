@@ -3,11 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OrbitLan — A private virtual LAN for everyone</title>
-<meta name="description" content="A free, peer-to-peer virtual LAN for gaming with friends across cities and ISPs. Create a network, share a code, and your LAN games just work again.">
+<title>OrbitLan — Free Virtual LAN for LAN Games on Windows</title>
+<meta name="description" content="Create a private virtual LAN for Minecraft, classic LAN games, and direct-IP apps. Free, open-source Windows client with encrypted peer-to-peer links.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="OrbitLan — Free Virtual LAN for LAN Games">
+<meta property="og:description" content="Create a private virtual LAN for Minecraft, classic LAN games, and direct-IP apps on Windows.">
+<meta property="og:url" content="https://orbitlan.site/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<meta property="og:image:alt" content="OrbitLan pixel-art Earth logo">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OrbitLan — Free Virtual LAN for LAN Games">
+<meta name="twitter:description" content="A simple, open-source virtual LAN for compatible Windows games and direct-IP apps.">
+<meta name="twitter:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
 <link rel="icon" type="image/webp" href="assets/earthspin-transparent.webp">
-
-<!-- SUPPORTER_CHECKOUT_URL: replace the disabled Supporter label after Lemon Squeezy approval. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OrbitLan",
+  "url": "https://orbitlan.site/",
+  "downloadUrl": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe",
+  "operatingSystem": "Windows 10, Windows 11",
+  "applicationCategory": "UtilitiesApplication",
+  "softwareVersion": "1.0.0",
+  "description": "An open-source virtual LAN for compatible multiplayer games, direct-IP apps, and private network tools.",
+  "license": "https://github.com/furqan-ahm/orbitlan/blob/main/LICENSE",
+  "author": {
+    "@type": "Person",
+    "name": "Furqan Ahmed",
+    "url": "https://github.com/furqan-ahm"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "OrbitLan Community Edition",
+      "price": "0",
+      "priceCurrency": "USD",
+      "url": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe"
+    },
+    {
+      "@type": "Offer",
+      "name": "OrbitLan Supporter Edition",
+      "price": "5",
+      "priceCurrency": "USD",
+      "url": "https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986"
+    }
+  ]
+}
+</script>
 
 <style>
   @font-face{font-family:'PressStart';src:url(data:font/woff2;base64,d09GMgABAAAAABowAA8AAAAAT3QAABnUAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHCgGYACCdAiBYgmaFhEICut833YLgTYAATYCJAOBOgQgBYRKB4cLDIExG6tHB8a427DbAaRay+sjqlWnE0Wp4tw6UFX1nEBlDNshGUM5eAOCFBpGWzlXlTAwNFEGGPHdx4hHkE3lBA8Nix9xcQFLNKw+M9zBaavrtpeX4+f1f5jp2Uawh4/gwNFUqZQahs/HYKO0f+Px12lKLAk+EU+/+153mL18QugTGoZzhCanaPWffze/Xzs5Qe06EwjJpZCKg6c5pSJKr4iP67cbo/o188R0/O+JlsB2P7BRPKMky6IuAA8t4JJv1F5jtfcTBirJsPSd7xX1L0DEZuQElmWBDSHPvblPuHO2VOk6XV1hq9V1AAFIVf/TlhIUjZOoeZrv6k7aEG1IR0bQD0o2dyldlJntqqcN8MO5+FYRjTbSO3YWNr9fqX75uqfdGIDgt/eXwPGclZSkEin5f9kwmw23WPkW0lQgokwtU7BIw+tJBMB/uZefpDSJkLW3mOwvWbOHIqurjsEiFJLxOIypL+bF5LbNxOz4AgD6e1XL9j2AHPK0F3ApO22qHKff1YbadlHanYtKeP9/gPiAyCWwYICUyU2UNlB0JC+QAk5DBSdeSlnSaR2j5NzG0MVYX1c5xM6l3RYu6tY8//vJ6tjuiS8upfWofhB88RdLEkNIIhhsBh+HuCgY+/XVK36Ovf9PTW1/rSzSIeyE1O2+z38ZTmuZ6l9xKHgg65cQBMBBoxG6+9AUAofOqSPwAAAYAKyvAwCY+CndBQkQbhHmAIP3JWlFS3wEABKYlxdErJCviYoPAPmKnwKA+CmdKXgAAISv+1yZIgoojoUggsojERlVv9Apw+AAuMkeZDs72Onu67Fe6O0+Yt9iP2e/ZZ+xf0nbJBWv2G2qrGxHBzrRPexB9jR7jX3Avsm+y37F/sC+ljZLiS+POa3/bf2P62+AWfPbx5INwv8REJeg0ZmGzKjaZY8LrsIdeBRPAwAYdBLqWdDAikY2NLFr5tDCiVYutHFr50EHLzpNmeZHVgA5QeSFUBBGUQQlNmAjDJvQpWwzTFvAzZi1Fd22oSKKHpehl6xPTL+4AYpBCUNUwzQjthuVNKaOcSkT0ib5kME8O/6NfwvH3YvLuXw5azl+isvD17gciJ/+/xZuaNkhfloL/h//7ft0p7oGHcR0HCiw9gue8TVaJt9GtplaUtM5mulIQc2/bbBh54kcm5gl5gku/RYEnoIn6ZTTuaeg4xT8YIxMe9smxx18cDKgpRItRVV330Ur1twyB45tfwuGGkXJjGdUUZRG8imTSXB7YkqTbFKADw7AOZpb1iRwWMmQsox0cJQO6PgGqKqqqVFaVYixeKbqKeoYgEzNp6DEtyMlJdCiBBOzSqp6Ml2sWJwWaUfAlSx3jCXUKpBV+wjFlHUVOBq27BqlS9O0SqbtxLRt1nY1iloFjb1IShsXuR06nlHSaeXdFgJiYFmWVQkCQgmZwo5z0k5SlVLK06pjytVOfvKLYYdXfwIjKfFSvzyYTW+tTvBB6NgQgL01JI4D7L1TWghOpiYMGiXjFDcXW7DdT9nUDLQKFNWg09c1F+c4WSaOEaEHcJFjX6DW6RAr0RrFasd6uvUiCBXuyn1Pj06qAnTx1VIXKkpQurk4ge5aT68O+t7NG+EXw85GyefP4QlNNeVxgjyVT1/bj4Xt6uvSrrZbrlN+o7wT1/ZOWRPranDdgF7g5Qcp76uOtBboTatjFUENxXVG9xuRIgooqlOWt1hLpobmFll/MWVl3+A5Rg4EnbPrgUoXH9ENujnJnEWZyXdbgKDSJ3Gi1BLR5RsgqI+9CKGyH+lVAgZ0KoEOhawakEhr3/1+ggdmaKolYEnz5rSJT8+QXhBMe4b1Qm2IKAJsUETYqDDYpEiwWbHAFsUKWxUbbFPsg3VO8J+XlurafhRUpOWFclHPlFAiEju+YTqhxU48oKP6WM2d9hMvwyjKGMUYRjGOUVQwigmMoopR1DCK2zGKSYyWdIc6XqG+OtFfRU9k2ZtTWoJST9nfmAbH+i7rO56NDhghmKOSn8jGGF1SGhSgSRwXpkitsVMkClfinelophmhcLFSi8NDu63W+LlQRdsAKT2JkP5RRF4BU9f9Up6UlvGwk/dJm0ON0cQLBK897XFqd9VrwbNjyDZSQN97405XBERUVCUglOWxe6W5pVdYJSMemw32g1BC2zFO4VDKM+OISM13ZZk6mPhT0867Z02DAHWT8XaT9VDVFZApQSEAq6vHGxs78asgT8rmVdEmN8+HFXXMxtEoSvdQhomM56VMqxrfP55G4OlUKPJ8ehcEnmsg8nSfVPXDzQKQaTLMT4xCGx9SUGnjxs414SCFWBKQaTZuWVIzJfCATPPMVieTVBNfM5tM7lTPHB4WTF/SSEHq8CTyHm1yqSGQdgpiuiDDnBJIHwxTsUIt1tSElxcBpbnIWlR12souz2cxNL5FwKSkeLr4oCAYV5k+C0zqujHPhZKTOKH5gQzp43HbTGhErVVpGA+lQxuXX3HXjM1uQERWvM1djpmu5gNNx2y3kQel2XlsMkOqyHjFhkPgHiIpGtcoPguCWvXlCXhttys2poYBUxjN/xSj9CVvaK26aS1PTCxRfKu2QmUQmS4eVo/aM3wrVHhkOo+9Tnihuy1yOhW0k22dzenb3e8KSMzW2nFkwLHzFwaXQqQiqDBslIyYO+RiOctBqWrYtUB3wRGFYLSLgGMKyXFZrCgTRGCyi4BTClVPu68AughnVILZVQScUwnmjwIIF1SCxVUEXFJJLptGrqwgV1aRK1Xkcq3EHmUHlbCzi4C7FLJ324emugdNdS+a6j401f1oqgfQVA+iqR5Cc/9hB7mZtI9wsyy12FEsy2NvnxVo7DjukCyciJN6Mk5wKo88OJ6O5fFMLC/PEn7Hc+IO5+MEF+IEF/Mo3PFSrICXxwp4RayAVwoCV8UJro4TXJNHkeC1sSJeFyvi9bEi3iAI3BgnuClOr3ez/tXOhE+tS4QubbspJrav9+N5vInI8vPDgOn6jfbXRf5D/gP2F/IyDh/fgtqAElmoleqRgTjzQl48sBARAka6tUtNIHasMwK7OcuGIR5fuZDsUKrLFx6CmBxiIqbqIs/jUletX5cN1UuHf/kYl7u8DRkmzQl+iMjboesQy1F3sIJulsvrqkg3eXbdBA+UMY6vr4tQg+HP0IFZpckusrPpfimZidwiGZiniomNccn1arla2Vsfa7fdEh0qpibC0kTTMPS6KBg1LrB2UqXTSKUqheTS3AujX9A9qpkDrsJlj9wfXK4oigoXw3QYKoIA6yW42ZDN+VqHFegQrM8Akf6QJSipo/1suu/F0MBsZBaDJBtVRmeyEmANB56Mgos1Fq27+A46WE9mAhq9Vwqjwk/7M3ikid2pI9CZNtip3N/DfK1ldVezy4P8brHuOQrThIBTh+0QrwIjnZOqAX8MFftVISCp0ZB7ugO4TKN2j27iAH6RuQx80yQLDCsUI2aGCVITtumzoYgJdlJnwkSUI4jntBUWHDwxMEVYqBjY7zxOgEW3zpAV4TtetFBwYJRwYA1Z1c06sgS5THCypOW5WqYpM0EpI+zIu8CE9FPC61xud6YXIUlUByEqtx1Xdk1uHvT2dbst1NHm+pp1MpDetNDSFnDAB8wqShBqyoqa8JLytNvw/qQgrqRylLh7tmmMZ6Y9POR2forKyEyzohEoPygnVZBxv400EvM3i+a2fS7G0FkVMJBOUwUTfr132o1+6bNEpov8ZYUbiserX0GEg96Uk8W2mvZFS6c9TtjQj4r4dhH5jHAwYI+h6IijG8o+e1vldX+UCfH8e8v0yjTCSRflMUNjvQoiRcIl2kY6s7wLbjs3n0Oabv8eZM7VdI57IyjeqNtvltu6kQOhMpHyLjT9iOBfcz3KVBLSL0h+p0Ms5kyils1ohB7z3K2feIq9RJ9+9B3InWsfucn3BvuJ31YS1WtGrld1XVIIU6EhCUeosto6lOv2Tf0xthyhVK47QKIjSVesY1JNY3FvOHJgNk1gBqDGPA6S9um3QD0oOtBu4NLlJuISY+eU9COIc/bdjOHmUQw7XIJqoKm1mYkA3h04VJ9c46bvvWKGHLpqlF4u6Pcjn4sFemUnL/fn4hAgE6n83FiSErEGPdrlrrBzx70y4DFIypQe8ccyrHxjzDBcYBR6jOVRO3d8yYOMUG+lgruoBip/3ThNSfoo1EqveKVVr2NpkSWkibK2goLnXFI3vfDbscHjYkUJ1NP+xjK3jJ3cwK01p3zSAj8+8v5tIkm6cVkEMlFbiy6Z8SthDIMAEYFMM3e2mwaN4ezBnxwlFGPkNzk2WkTZ9PeztOdio2H5oFIc5d3m7C4iy3UMOPqk257Iu3k4rMKNUQ0mM22FYZcnA8xzBihUaobrZhyfNIv7y+R+KROYVhpI7tKkX9ilBhdDZLQ7i5Me5JAbveo1SZsE2wXcHGcXMajy7UQu8STqkO44ZnHwoibLgbiQTE0Cb+IvyXgs8qRbVt1jDUp2g4xuwd8rNkch4AndfyDnwk43EefDvUsAki+BJ8HugOiGvcgJmExpcmNbORRoTvvulWyMswQ8WNmRoqFRwbn7j9PItFmVGpnzYI7by9VIrvx+HGGYRC+ToK3M16vVwhbDFsk9oXTENCy1zI3gOc2bjDZdmk9zctz9EYO9vR/5oKJYITuuzUDKXAOaQm+tCdM0DSrWloEtz2vZaC5Nhj02bgMPNPAqFlXNWs24poJn8F3Rcji+TMLFMo8AhNNS0Z0dSxq4ILrNKPmPwndkf6F6QsfCt0Mmy/PfjN6BIwsnk1AJIcm5n1oFIqU4J8GiEjU20l0Gp0mY0PRrl4wV6Go7b9wgfAnZTrqzYyUHbBs+D9Sai8s3eMvijxY/NNZZt/V18ncT7IHiYzG4XoYeGiDyw7mOtmOhYQuFRfNOPocPXC7KNwYq2JN2ahgIBem1H4VDzGEf/cCC+Mr/f9tMCOkvacOQSEbsiQcFOTyPRgAlMHA5XeiFboBWuiLPT48POOLIfJs1X38d/Nf/9ashABLCfaPleW53aqXcIg+g1A9SOl3OwqrSFZHtMpjncgsdplTKWq73MsfyZKc3aG7zTj/WuenjqzXgy2+j//GYfN7W04e3L/5c7RumHdphnmrJAYcfj8dnf/3VqNAoKMeOCgp8FiEhGGFQnDvKpwtpenOguuoVgdTbWENFxePY6m8fflshUaa7IoVQBYMaqWcf9Gx2vZvQ2p1a13q9V/vwG0xId9owRwR4hZ/m7Bw7+bYtDkSuV1gpCSc81/FuuEt+3FS+3ksRPq+8U2327cABB13HZj/Fmyai8MRerZd7JedGS9INkfU9busgnAfv1ax5alS1OXARPMLXRC30FEIbeahslGwGbSJxr+UphbD+oDXp+4bBX+dknuXW+V7YHZYb9st5ud6rd8QL0Xa60NysCfyoqYlYnPYl7bejxRBdnuNQqPbiL1+EKiam9p47noAyYdCRqeQBzvSuGHE4D0adO9v5dIkTTHKdLTjvR3CG3tbYwOMXyVhATY11x0RFq4Nksj8KQRPpR3qJ3jcccbog2C4UXwPj3DSlrsU/PWk5/PEhvxxC8nnJUx0e2DGJp3ZXkIgaaHRK0V5QvU9U9g5bcjP5TiJyWgHkBqPG+2IYnzfvlyEGy/My56HX+btlK3dEkiDp/eKCkNEnm3lvgv8mlnJfyTlbAOKbBPPKCWvkgs476FnD1vMT8PT2xMRWmcbDQkYKiQRLI49WSvklLwioA53pOqnG8PVXIwFLOhJegjaa+Qe5KFUjTGiwRMUk2TtIjOpHbZ3ZtosslbwXFv3xc4lOjXPkZ0gxAO3KHSaOHmQ295/5itjIhEuZs2NOuCftcoWNpBeKjfn1XrG/XpcE3yHcJOWMBiaO46J9LudMsUjGsETERmUvqTaWsVsTrLhan2c2kgBhkoHAQhc0mDquafJ9hiaORlI0Ma3zqiWedjGjMzXWNkZZQFLgFavoJnu8F6nMte875gLuiTggZ7EyzTuwB3JCOj74M5P4osmcKfyDVE73lcqtfqIjvMToPZWYRckFda/fvI2X0y7UUm6p7nBB8WcIZm2cxvQuVR5ljwsfsCwy8Skm0fvGJPME802U3MrYbUlbLwDadrZkGvmZN823wOCc15za5WbKs047XIDyGc42N1gVgdZcUrwGZwbFZas8/oAch5rosHnRLHFSeYA0xXSc4x0PwgQsyzD6iGT6zpCR8miVjQnFcGQC3ZNLTinchvWA4wg8PLO3e3pEczj9osaegi80i8/jtIfRDzdUKaiVt+iLTf06HNI0rdM1vZT41ubwQhmgPD+rTqzUmUrUMqhwDR8bupCYSh8GaNlU/awn7dgvjsf12PofYIRAJI2BI7vk0ebfU+b+riz5zdUZzsOzqJYyvcg8BUW9/ICJmq2ObtMEbEOptYTmm3cKi9H/8/wWvVaWX2Iqo0FSVMZqjS3+qHJ41/SSe6cFavoyxGPs8fBHgXddY9KqYLRVVpoGBrZ8jVfjyrm3wdImikJje6TGCiq0hI7d0Ah2NF+Nu9TeQ2E+D5E1j6crW9y2XDFJnQYToS0+BgDqESKZG5Re+We+8oozfni16+uS2ii/nvgoMndZnIM2QElmv1izMg7SIc8oWhYt2oLhNEkIPwTkbA9xIceTosC5OY/4bz2d0ZP/wBMEStYy3OqgnTz1hpbt5qlT2m/v24HT2IvzcT5fekwx0x/1ID0TqGCsyZKIQmhQHLE0NiK498lhUfXjFXh5e9kZ3NuJCVMGH9bpELjE/HDGoGXqyZhj233oapQI6DwYZjxL2s5x81tki22XoScIBrqTmbyYD1EGUqc2d82e0bc1RaxxvVd9ufNrO1DY2nV+ukxPr0+4WtZrbtHzvbgUi0/Fxttlu1ejpodXpDgyOqVNp8K2fkIL2PLQq9YALpGOVCl6KHcOieuWb5u7vRsjh0AJOgoRflL0FZWhYEN53g6RDSxPb/Q7RSl5SaPXU8l9HYz3Rzbcr+AisIrdhIsKNxt3O74xNaJ7QYZivQ2o+y1y05yNy+ukFDO/0xKQ71i29Ae9aPfBtvkRGWZ8Y/Q6uFe2gdHitsMNkjJ2IHHqfH4S58R0181URwlSeHYKWJzHGt/Btms26afDWpii0rc2b9wvNDAxL1JHjAh3I5APPhbcTF/rDCXldJt1srAyVeV6GmiH8Tl0fMBXJhNmbtRuq2ybv1XKTjKWCUZ1kHCSkULxehkc98Gw3lLa2a7yMlOjb1tjO0MiMgbdG+izwuCnVaac/fW6GPEOU5JtwZboYHKBaKJxkckbtO5l0LtfaUY4XyoMWCpyTgdYjUMcsnxolw0znwCNw9gnPckcpUdl5P8y8y+Kzd8IpSZVfnHZ4ShJysDAOXHw28yKWlqOmwvvZHj8yyJHQcAvvovm5tn2H0lTa4OAVBUkTAgK4r3V2C6MWm5eSlnLlbLLHs+R/qomaDDO9jGRwD4Fvxf6yNqbmqwvBx5yiYErwQUDL4mAzytABwSZYPlLJlKSPW1iWYiOyqUOFA5WyBohMK5qjmqC67Phbe2RMb2hLcNh2hA92cpZmJikTSPibUHdXh/G1LF55+t3r2p5XV5f/hgp0Z82zjp/xjCValtJ1Baet3iubaVPW+mcXBhQDsnlNRhwqU4B0aptzsTv+/LrMyJ6aop/KZUP23+FY7Ll27/mlnxULShImQYBiGKQZpv8zPo+1WA4HiXsTtw5MfXWikoZ23gDmaKbEZ8RGirmrBQ1KuMzzbHXxQA7030RMBVQbqqaSMiJ//c8+g4XnZ3+5xx1scXb5m+QPTJVVAZS/WRhsNAKI5qxjgYnX/AzLeMrkzLfRClR3eGCwmfgGk1i3BpeCLtXFTBWy989T+TEPgAIwmhhgGRDrso0VnyFc/J6m+jfuhkiAfrem7nlu1MLWa42OA/+dRDDzNXlyr9FozJXRzkpdrhgfAcabWW29tr2zcYd8opA1wcgAh3zt5f2KHybKH4KAD/aXgPtypl3z39/8j/VrP+5VgjAIAH/x98TYrwOBIbg4HImszE6Xk5xscu5vB2dzHA5Nzrs1kUaXjZgQYYLCc8/fcO4WwG84W4gEAAb9hBBzA74BTl4qwlb8fVqAR78brWIEg+vZtCdWS1hM5ZWW5DUZnnKHmCfU+y5x+Q0Vp+00wn7detUPrLByS/OIQ2OOmGvRqN6DBlzwm4nnTTplDUnnNJiTL0Ju+112qFea0a1T0AtdNQRslYNmhpN13a5sOW6G7lZ+WdNHjdvQkXellZudPO13FHHnMdhYK99/cUmza+ibMrA3ZGBuFTtUQfstvNa7HIa7H04kmIxaadWu8t5hgvo4O4go+Gq5/o6dLKz9isLROyTaDaesdsusp6CTIyNWHPYtrnH61KcAObVrr+KFv8DLMDxqKgYhhMkhUrrg8lmy449B46cOHPhyo07D568ePPhi29x47BxJaFq25N1qbRe39DY1NzS2tbe0ZnJ5vKFYqlsdJm4bpUevfr0Dxg0ZNiI0THjJkyaMj1j1lwj///v9JH9IEZtkyqnSCURJlSmCs7qpTSriMnrhtV6DhCYrgXEhMmrR4SJvDpAhG2xK1YPfuGyvvCnK8GDcKl7SWO7GUeqreNSO2Qg5tI6TLl0EFMu9fBnpEm0l5+9QVr9QdAyGwZ/4eOJWIjumCf9t/D7zwVW8/uh/XppCinex9cLHxYGC35h0c5sLw5XM+Mz2Zl4+uY0/2+4yn+V8yoLwGCnxTvxQeNEXovoLonxm8YjjS9z6rJr1R7+2K4CsXHfuR9Fr7r8+Hohz/XPNc9tsTJX6hetX19jt78oRJ6/Srtm0N0HAAA=) format('woff2');font-display:swap}
@@ -19,11 +66,12 @@
   .hero{position:relative;isolation:isolate;min-height:760px;height:100svh;max-height:940px;color:var(--white);background:linear-gradient(180deg,#090e43 0%,#111755 52%,#24245f 78%,#40316b 100%);display:flex;align-items:center;overflow:hidden}.sky{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);align-items:center;gap:54px;padding-top:40px}.hero-grid>*{min-width:0}.hero-grid>div:first-child{position:relative;z-index:3}.eyebrow,.hero h1,.hero-copy,.micro{text-shadow:0 2px 12px rgba(4,7,39,.95)}.eyebrow{margin:0 0 22px;font-family:'PressStart',monospace;font-size:10px;line-height:1.6;color:#c9c7ff;text-transform:uppercase;letter-spacing:.08em}.hero h1{max-width:720px;margin:0;font-size:clamp(50px,6.8vw,92px);line-height:.98;letter-spacing:-.065em}.hero-copy{max-width:600px;margin:26px 0 30px;font-size:clamp(18px,2vw,22px);line-height:1.55;color:#d8daf5}.actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:8px;background:var(--white);color:#181a42;font-size:14px;font-weight:750;transition:transform .15s ease,background .15s ease}.button:hover{transform:translateY(-2px);background:#eeeefe}.button.secondary{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.45)}.button.secondary:hover{background:rgba(255,255,255,.1)}.micro{margin:18px 0 0;color:#b9bce2;font-size:14px}
   .planet{position:relative;z-index:0;min-width:0;width:100%;aspect-ratio:1;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img,.network-mesh{position:absolute;inset:50% auto auto 50%;max-width:none;height:auto;transform:translate(-50%,-50%)}.planet img{z-index:1;display:block;width:min(170%,800px);image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}.network-mesh{width:min(184%,860px);aspect-ratio:1;pointer-events:none}.network-mesh.back{z-index:0}.network-mesh.front{z-index:2}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
   .how{padding:86px 0 76px}.intro{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;margin-bottom:62px}.label{margin:8px 0 0;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}.intro h2{margin:0;font-size:clamp(34px,4vw,58px);line-height:1.08;letter-spacing:-.045em}.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.step{padding:32px 34px 0 0}.step+.step{padding-left:34px;border-left:1px solid var(--line)}.step span{color:var(--coral);font-size:13px;font-weight:800}.step h3{margin:8px 0 8px;font-size:20px;letter-spacing:-.02em}.step p{margin:0;color:var(--muted);font-size:16px}
-  .editions{padding:22px 0 76px}.edition-grid{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;border-top:1px solid var(--line);padding-top:34px}.edition-options{display:grid;grid-template-columns:1fr 1fr;gap:0}.edition{padding:0 34px 0 0}.edition+.edition{padding:0 0 0 34px;border-left:1px solid var(--line)}.edition-kicker{margin:0 0 5px;color:var(--violet);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.edition h3{margin:0 0 10px;font-size:25px;letter-spacing:-.03em}.edition p{margin:0;color:var(--muted);font-size:15px}.edition-price{display:block;margin-top:15px;color:var(--ink);font-weight:800}.edition-link{display:inline-block;margin-top:13px;color:var(--violet);font-size:14px;font-weight:800}.edition-link.muted{color:#8589a2;cursor:default}
+  .editions{padding:22px 0 76px}.edition-grid{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;border-top:1px solid var(--line);padding-top:34px}.edition-options{display:grid;grid-template-columns:1fr 1fr;gap:0}.edition{padding:0 34px 0 0}.edition+.edition{padding:0 0 0 34px;border-left:1px solid var(--line)}.edition-kicker{margin:0 0 5px;color:var(--violet);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.edition h3{margin:0 0 10px;font-size:25px;letter-spacing:-.03em}.edition p{margin:0;color:var(--muted);font-size:15px}.edition-price{display:block;margin-top:15px;color:var(--ink);font-weight:800}.edition-link{display:inline-block;margin-top:13px;color:var(--violet);font-size:14px;font-weight:800}.checkout-note{display:block;margin-top:7px;color:#8589a2;font-size:12px}
+  .uses{padding:0 0 70px}.uses-row{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;padding-top:34px;border-top:1px solid var(--line)}.uses h2{margin:0;font-size:clamp(30px,3.6vw,48px);line-height:1.08;letter-spacing:-.04em}.uses-copy{max-width:720px}.uses-copy p{margin:0;color:var(--muted);font-size:17px}.uses-copy p+p{margin-top:13px}.uses-note{font-size:13px!important;color:#8589a2!important}
   .trust{padding:34px 0 70px}.trust-row{display:flex;justify-content:space-between;gap:30px;padding-top:30px;border-top:1px solid var(--line)}.trust-item{max-width:300px}.trust-item strong{display:block;margin-bottom:4px;font-size:15px}.trust-item span{color:var(--muted);font-size:14px}
   .support{background:#252557;color:var(--white);padding:62px 0}.support-row{display:flex;align-items:center;justify-content:space-between;gap:44px}.support h2{margin:0 0 8px;font-size:clamp(30px,3.5vw,48px);letter-spacing:-.04em}.support p{max-width:660px;margin:0;color:#c9cbe7}.support .button{flex:0 0 auto}
   footer{background:#1a1a42;color:#afb2d1;padding:28px 0;font-size:13px}.footer-row{display:flex;align-items:center;justify-content:space-between;gap:20px}.footer-links{display:flex;gap:22px}.footer-links a:hover{color:#fff}
-  @media(max-width:900px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:22px}.brand-orbit{width:34px;height:34px;margin-right:-1px}.brand-tag{margin-left:32px;font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:104px 0 72px}.hero-grid{grid-template-columns:minmax(0,1fr);gap:22px;padding:0;text-align:center}.hero h1{font-size:clamp(42px,12vw,64px)}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1;width:clamp(280px,74vw,460px);margin:0 auto}.planet img{width:min(170%,780px)}.network-mesh{width:min(184%,680px)}.intro,.edition-grid{grid-template-columns:1fr;gap:14px}.intro{margin-bottom:42px}.edition-options{margin-top:20px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
+  @media(max-width:900px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:22px}.brand-orbit{width:34px;height:34px;margin-right:-1px}.brand-tag{margin-left:32px;font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:104px 0 72px}.hero-grid{grid-template-columns:minmax(0,1fr);gap:22px;padding:0;text-align:center}.hero h1{font-size:clamp(42px,12vw,64px)}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1;width:clamp(280px,74vw,460px);margin:0 auto}.planet img{width:min(170%,780px)}.network-mesh{width:min(184%,680px)}.intro,.edition-grid,.uses-row{grid-template-columns:1fr;gap:14px}.intro{margin-bottom:42px}.edition-options{margin-top:20px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
   @media(max-width:600px){.edition-options{grid-template-columns:1fr}.edition{padding:0 0 28px}.edition+.edition{padding:28px 0 0;border-left:0;border-top:1px solid var(--line)}}
   @media(max-width:420px){.wrap{width:calc(100% - 24px)}.nav{gap:10px}.brand{min-width:0}.brand-name{font-size:20px}.brand-orbit{width:30px;height:30px}.brand-tag{margin-left:28px;font-size:8px;letter-spacing:.07em;white-space:nowrap}.nav-links{flex:0 0 auto}.nav-links .nav-cta{padding:8px 11px}.hero{padding-top:92px}.planet{width:min(74vw,280px)}.hero-grid{gap:18px}.hero h1{font-size:clamp(36px,11.5vw,44px)}.hero-copy{font-size:17px;overflow-wrap:anywhere}.actions{flex-direction:column;align-items:stretch}.button{width:100%;padding:0 17px}.edition-options{grid-template-columns:1fr}.edition{padding:0 0 28px}.edition+.edition{padding:28px 0 0;border-left:0;border-top:1px solid var(--line)}}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}.planet{animation:none}}
@@ -48,7 +96,7 @@
       <div>
         <p class="eyebrow">Free peer-to-peer virtual LAN</p>
         <h1>One LAN.<br>Different places.</h1>
-        <p class="hero-copy">Create a room, share one code, and play with friends as if everyone were on the same router.</p>
+        <p class="hero-copy">Create an encrypted virtual LAN on Windows, share one code, and play compatible LAN or direct-IP games with friends on different networks.</p>
         <div class="actions">
           <a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a>
           <a class="button secondary" href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">View source</a>
@@ -81,8 +129,9 @@
           <p class="edition-kicker">Official supporter build ready</p>
           <h3>Supporter</h3>
           <p>Host larger groups, use Force Relay when needed, and get a distinct supporter theme. The network core and security stay the same.</p>
-          <span class="edition-price">Pay $3 or more</span>
-          <span class="edition-link muted">Lemon Squeezy checkout pending approval</span>
+          <span class="edition-price">$5 once</span>
+          <a class="edition-link supporter-buy" href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986" target="_blank" rel="noopener">Get Supporter Edition</a>
+          <small class="checkout-note">One-time purchase. No recurring membership required.</small>
         </article>
       </div>
     </div>
@@ -102,6 +151,20 @@
     </div>
   </section>
 
+  <section class="uses" aria-labelledby="uses-title">
+    <div class="wrap uses-row">
+      <div>
+        <p class="label">Compatible uses</p>
+        <h2 id="uses-title">Built for LAN games. Useful beyond them.</h2>
+      </div>
+      <div class="uses-copy">
+        <p>OrbitLan is a simple, open-source Hamachi alternative for small Windows groups and software that supports LAN multiplayer or direct-IP connections: Minecraft Java servers and Direct Connection, classics such as Need for Speed: Most Wanted and Battlefield 1942, plus many other compatible games.</p>
+        <p>Development servers and private IP-based tools can use the same virtual network too. Automatic game discovery and firewall behavior vary, so direct IP is the most dependable option when a title supports it.</p>
+        <p class="uses-note">Game names are compatibility examples only. OrbitLan is not affiliated with or endorsed by their publishers.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="trust" aria-label="OrbitLan benefits">
     <div class="wrap trust-row">
       <div class="trust-item"><strong>Direct when possible</strong><span>Game traffic flows friend to friend for lower latency.</span></div>
@@ -114,9 +177,9 @@
     <div class="wrap support-row">
       <div>
         <h2>Support OrbitLan, get a little extra.</h2>
-        <p>Community v1.0.0 stays free. The Supporter build starts at $3, lets you pay more if you want, and includes larger hosted rooms plus its own visual theme. No subscription or in-app account.</p>
+        <p>Community v1.0.0 stays free. The Supporter build is a one-time $5 purchase through Patreon and includes larger hosted rooms plus its own visual theme. No subscription or in-app account.</p>
       </div>
-      <a class="button" href="#editions">Compare editions</a>
+      <a class="button supporter-buy" href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986" target="_blank" rel="noopener">Get Supporter Edition — $5</a>
     </div>
   </section>
 </main>
@@ -126,6 +189,7 @@
     <span>Open source · MIT · peer to peer</span>
     <div class="footer-links">
       <a href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986" target="_blank" rel="noopener">Supporter Edition</a>
       <a href="https://github.com/furqan-ahm/orbitlan/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
     </div>
   </div>

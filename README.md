@@ -13,7 +13,7 @@
   ·
   <a href="https://orbitlan.site">Website</a>
   ·
-  <a href="https://orbitlan.site/#support">Supporter Edition</a>
+  <a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Supporter Edition — $5 once</a>
 </p>
 
 ---
@@ -33,9 +33,9 @@ OrbitLan connects trusted devices through an encrypted virtual local network ove
 internet. Each device gets an address on the same private subnet (`10.69.0.x`) and can
 communicate directly with the others.
 
-Gaming was the reason I built it, but it is not limited to games. Direct-IP apps,
-development servers, private tools, and other software that works over an IP-based LAN
-can technically use OrbitLan too. Application discovery and firewall behavior can vary.
+Gaming was the reason I built it, but it is not limited to games. Minecraft Java servers
+and Direct Connection, other compatible LAN games, development servers, private tools,
+and direct-IP apps can use OrbitLan too. Application discovery and firewall behavior vary.
 
 It is the Hamachi/ZeroTier idea, rebuilt to be simple, lightweight, and free.
 
@@ -87,7 +87,7 @@ same in both editions. Community is the only edition published on GitHub Release
 
 | | Community | Supporter |
 |---|---|---|
-| Official build | Free v1.0.0 on GitHub | Pay $3 or more through Lemon Squeezy |
+| Official build | Free v1.0.0 on GitHub | One-time $5 purchase through Patreon |
 | Hosting a network | Up to 4 nodes | Larger rooms, up to the coordinator's safety limit |
 | Joining a network | Can join a larger Supporter-hosted room | Can join any room with space |
 | Relay choices | Auto or Off | Auto, Off, or Force Relay |
@@ -191,11 +191,13 @@ OrbitLan Community Edition is free, and direct connections do not create relay b
 costs. I build and maintain it in my free time, while the optional shared relay has a real
 running cost.
 
-If OrbitLan helps bring an old game night back to life, the Supporter Edition will be sold
-through Lemon Squeezy for **$3 or more — you choose the amount**. It adds larger hosted rooms,
+If OrbitLan helps bring an old game night back to life, the
+[Supporter Edition is available on Patreon](https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986)
+for a **one-time $5 purchase**. It adds larger hosted rooms,
 Force Relay, and a distinct visual theme without withholding security, self-hosting, or the
-core network from Community users. Its checkout link will be added after the store review is
-complete; Community v1.0.0 remains immediately available from GitHub.
+core network from Community users. It does not require a recurring membership; checkout and
+private downloads are handled by Patreon. Community v1.0.0 remains immediately available
+from GitHub.
 
 ## Help and feedback
 
