@@ -23,34 +23,53 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "OrbitLan",
-  "url": "https://orbitlan.site/",
-  "downloadUrl": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe",
-  "operatingSystem": "Windows 10, Windows 11",
-  "applicationCategory": "UtilitiesApplication",
-  "softwareVersion": "1.0.0",
-  "description": "An open-source virtual LAN for compatible multiplayer games, direct-IP apps, and private network tools.",
-  "license": "https://github.com/furqan-ahm/orbitlan/blob/main/LICENSE",
-  "author": {
-    "@type": "Person",
-    "name": "Furqan Ahmed",
-    "url": "https://github.com/furqan-ahm"
-  },
-  "offers": [
+  "@graph": [
     {
-      "@type": "Offer",
-      "name": "OrbitLan Community Edition",
-      "price": "0",
-      "priceCurrency": "USD",
-      "url": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe"
+      "@type": "Organization",
+      "@id": "https://orbitlan.site/#organization",
+      "name": "OrbitLan",
+      "url": "https://orbitlan.site/",
+      "logo": "https://orbitlan.site/assets/orbitlan-logo.png",
+      "sameAs": [
+        "https://github.com/furqan-ahm/orbitlan",
+        "https://www.patreon.com/orbitlan"
+      ]
     },
     {
-      "@type": "Offer",
-      "name": "OrbitLan Supporter Edition",
-      "price": "5",
-      "priceCurrency": "USD",
-      "url": "https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986"
+      "@type": "SoftwareApplication",
+      "@id": "https://orbitlan.site/#software",
+      "name": "OrbitLan",
+      "url": "https://orbitlan.site/",
+      "downloadUrl": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe",
+      "operatingSystem": "Windows 10, Windows 11",
+      "applicationCategory": "UtilitiesApplication",
+      "softwareVersion": "1.0.0",
+      "description": "An open-source virtual LAN for compatible multiplayer games, direct-IP apps, and private network tools.",
+      "license": "https://github.com/furqan-ahm/orbitlan/blob/main/LICENSE",
+      "publisher": {"@id": "https://orbitlan.site/#organization"},
+      "author": {
+        "@type": "Person",
+        "@id": "https://github.com/furqan-ahm",
+        "name": "Furqan Ahmed",
+        "url": "https://github.com/furqan-ahm"
+      },
+      "sameAs": ["https://github.com/furqan-ahm/orbitlan"],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "OrbitLan Community Edition",
+          "price": "0",
+          "priceCurrency": "USD",
+          "url": "https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe"
+        },
+        {
+          "@type": "Offer",
+          "name": "OrbitLan Supporter Edition",
+          "price": "5",
+          "priceCurrency": "USD",
+          "url": "https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986"
+        }
+      ]
     }
   ]
 }
@@ -192,7 +211,7 @@
 
 <footer>
   <div class="wrap footer-row">
-    <span>Open source · MIT · peer to peer</span>
+    <span>Built by <a href="https://github.com/furqan-ahm" target="_blank" rel="me noopener">Furqan Ahmed</a> · open source · MIT</span>
     <div class="footer-links">
       <a href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">GitHub</a>
       <a href="guides/play-lan-games-online/">Guides</a>
