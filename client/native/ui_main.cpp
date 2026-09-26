@@ -44,6 +44,8 @@ constexpr int kWindowHeight = 760;
 constexpr bool kSupporterEdition = ORBITLAN_SUPPORTER_EDITION != 0;
 constexpr bool kUiPreview = ORBITLAN_UI_PREVIEW != 0;
 constexpr std::string_view kEditionWireName = kSupporterEdition ? "supporter" : "community";
+constexpr wchar_t kSupportUrl[] =
+    L"https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986";
 
 enum ControlId : int {
     kNameEdit = 1001,
@@ -1758,8 +1760,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
                     InvalidateRect(g.window, nullptr, FALSE);
                     return 0;
                 case kSupport:
-                    ShellExecuteW(window, L"open", L"https://orbitlan.site/#support",
-                                  nullptr, nullptr, SW_SHOWNORMAL);
+                    ShellExecuteW(window, L"open", kSupportUrl, nullptr, nullptr, SW_SHOWNORMAL);
                     return 0;
                 case kSettings:
                     ToggleSettings(!g.settings_open);

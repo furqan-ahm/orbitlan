@@ -10,6 +10,6 @@ public static class ProductDefaults
     public const string UpdateManifestUrl =
         "https://github.com/furqan-ahm/orbitlan/releases/latest/download/manifest.json";
 
-    // Leave empty until the project's Patreon/Lemon Squeezy page exists.
-    public const string SupportUrl = "";
+    public const string SupportUrl =
+        "https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986";
 }
