@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a>
   ·
-  <a href="https://orbitlan-web.furqan-ahm.workers.dev">Website</a>
+  <a href="https://orbitlan.site">Website</a>
   ·
   <a href="https://patreon.com/orbitlan">Support the project</a>
 </p>
