@@ -67,7 +67,7 @@
   .planet{position:relative;z-index:0;min-width:0;width:100%;aspect-ratio:1;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img,.network-mesh{position:absolute;inset:50% auto auto 50%;max-width:none;height:auto;transform:translate(-50%,-50%)}.planet img{z-index:1;display:block;width:min(170%,800px);image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}.network-mesh{width:min(184%,860px);aspect-ratio:1;pointer-events:none}.network-mesh.back{z-index:0}.network-mesh.front{z-index:2}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
   .how{padding:86px 0 76px}.intro{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;margin-bottom:62px}.label{margin:8px 0 0;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}.intro h2{margin:0;font-size:clamp(34px,4vw,58px);line-height:1.08;letter-spacing:-.045em}.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.step{padding:32px 34px 0 0}.step+.step{padding-left:34px;border-left:1px solid var(--line)}.step span{color:var(--coral);font-size:13px;font-weight:800}.step h3{margin:8px 0 8px;font-size:20px;letter-spacing:-.02em}.step p{margin:0;color:var(--muted);font-size:16px}
   .editions{padding:22px 0 76px}.edition-grid{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;border-top:1px solid var(--line);padding-top:34px}.edition-options{display:grid;grid-template-columns:1fr 1fr;gap:0}.edition{padding:0 34px 0 0}.edition+.edition{padding:0 0 0 34px;border-left:1px solid var(--line)}.edition-kicker{margin:0 0 5px;color:var(--violet);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.edition h3{margin:0 0 10px;font-size:25px;letter-spacing:-.03em}.edition p{margin:0;color:var(--muted);font-size:15px}.edition-price{display:block;margin-top:15px;color:var(--ink);font-weight:800}.edition-link{display:inline-block;margin-top:13px;color:var(--violet);font-size:14px;font-weight:800}.checkout-note{display:block;margin-top:7px;color:#8589a2;font-size:12px}
-  .uses{padding:0 0 70px}.uses-row{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;padding-top:34px;border-top:1px solid var(--line)}.uses h2{margin:0;font-size:clamp(30px,3.6vw,48px);line-height:1.08;letter-spacing:-.04em}.uses-copy{max-width:720px}.uses-copy p{margin:0;color:var(--muted);font-size:17px}.uses-copy p+p{margin-top:13px}.uses-note{font-size:13px!important;color:#8589a2!important}
+  .uses{padding:0 0 70px}.uses-row{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;padding-top:34px;border-top:1px solid var(--line)}.uses h2{margin:0;font-size:clamp(30px,3.6vw,48px);line-height:1.08;letter-spacing:-.04em}.uses-copy{max-width:720px}.uses-copy p{margin:0;color:var(--muted);font-size:17px}.uses-copy p+p{margin-top:13px}.uses-note{font-size:13px!important;color:#8589a2!important}.guide-nav{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}.guide-nav span{width:100%;color:var(--ink);font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.guide-nav a{color:var(--violet);font-size:14px;font-weight:750}.guide-nav a:hover{text-decoration:underline;text-underline-offset:3px}
   .trust{padding:34px 0 70px}.trust-row{display:flex;justify-content:space-between;gap:30px;padding-top:30px;border-top:1px solid var(--line)}.trust-item{max-width:300px}.trust-item strong{display:block;margin-bottom:4px;font-size:15px}.trust-item span{color:var(--muted);font-size:14px}
   .support{background:#252557;color:var(--white);padding:62px 0}.support-row{display:flex;align-items:center;justify-content:space-between;gap:44px}.support h2{margin:0 0 8px;font-size:clamp(30px,3.5vw,48px);letter-spacing:-.04em}.support p{max-width:660px;margin:0;color:#c9cbe7}.support .button{flex:0 0 auto}
   footer{background:#1a1a42;color:#afb2d1;padding:28px 0;font-size:13px}.footer-row{display:flex;align-items:center;justify-content:space-between;gap:20px}.footer-links{display:flex;gap:22px}.footer-links a:hover{color:#fff}
@@ -161,6 +161,12 @@
         <p>OrbitLan is a simple, open-source Hamachi alternative for small Windows groups and software that supports LAN multiplayer or direct-IP connections: Minecraft Java servers and Direct Connection, classics such as Need for Speed: Most Wanted and Battlefield 1942, plus many other compatible games.</p>
         <p>Development servers and private IP-based tools can use the same virtual network too. Automatic game discovery and firewall behavior vary, so direct IP is the most dependable option when a title supports it.</p>
         <p class="uses-note">Game names are compatibility examples only. OrbitLan is not affiliated with or endorsed by their publishers.</p>
+        <nav class="guide-nav" aria-label="Practical guides">
+          <span>Practical guides</span>
+          <a href="guides/play-lan-games-online/">Play LAN games online</a>
+          <a href="guides/minecraft-java-without-port-forwarding/">Minecraft Java without port forwarding</a>
+          <a href="guides/hamachi-alternative/">Open-source Hamachi alternative</a>
+        </nav>
       </div>
     </div>
   </section>
@@ -189,6 +195,7 @@
     <span>Open source · MIT · peer to peer</span>
     <div class="footer-links">
       <a href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">GitHub</a>
+      <a href="guides/play-lan-games-online/">Guides</a>
       <a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986" target="_blank" rel="noopener">Supporter Edition</a>
       <a href="https://github.com/furqan-ahm/orbitlan/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
     </div>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play Minecraft Java Without Port Forwarding | OrbitLan</title>
+<meta name="description" content="Play Minecraft Java with friends on Windows without router port forwarding. Connect a LAN world or private server through an encrypted virtual LAN.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/guides/minecraft-java-without-port-forwarding/">
+<link rel="icon" type="image/webp" href="../../assets/earthspin-transparent.webp">
+<link rel="stylesheet" href="../guide.css">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="Play Minecraft Java With Friends Without Port Forwarding">
+<meta property="og:description" content="Connect a Minecraft Java LAN world or dedicated server through a virtual LAN on Windows.">
+<meta property="og:url" content="https://orbitlan.site/guides/minecraft-java-without-port-forwarding/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Play Minecraft Java With Friends Without Port Forwarding",
+      "description": "Connect a Minecraft Java LAN world or private server through a virtual LAN on Windows.",
+      "datePublished": "2026-09-26",
+      "dateModified": "2026-09-26",
+      "mainEntityOfPage": "https://orbitlan.site/guides/minecraft-java-without-port-forwarding/",
+      "image": "https://orbitlan.site/assets/orbitlan-logo.png",
+      "author": {"@type": "Person", "name": "Furqan Ahmed", "url": "https://github.com/furqan-ahm"},
+      "publisher": {"@type": "Organization", "name": "OrbitLan", "url": "https://orbitlan.site/"}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "OrbitLan", "item": "https://orbitlan.site/"},
+        {"@type": "ListItem", "position": 2, "name": "Minecraft Java without port forwarding", "item": "https://orbitlan.site/guides/minecraft-java-without-port-forwarding/"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="../../index.html"><img src="../../assets/earthspin-transparent.webp" width="35" height="35" alt=""><span>rbitLan</span></a>
+    <div class="nav-links"><a href="../../index.html#how">How it works</a><a href="https://github.com/furqan-ahm/orbitlan">Source</a><a class="download" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download</a></div>
+  </nav>
+</header>
+<main>
+  <header class="guide-head">
+    <div class="wrap">
+      <p class="eyebrow">OrbitLan guide · Minecraft Java</p>
+      <h1>Play Minecraft Java with friends without port forwarding</h1>
+      <p class="lede">Connect a LAN world or private Java server through a virtual LAN—without changing router settings or exposing a game port to the public internet.</p>
+    </div>
+  </header>
+  <article class="article">
+    <div class="wrap article-body">
+      <p class="meta">Written by Furqan Ahmed · Updated September 26, 2026</p>
+      <div class="note"><strong>This guide is for Minecraft: Java Edition on Windows 10 or 11.</strong> It does not cover Bedrock Edition, consoles, phones, or cross-platform play. Every player still needs their own legitimate copy of Minecraft.</div>
+      <p>Normally, friends outside your home cannot reach a world opened to LAN. Port forwarding can solve that, but it requires router access and exposes a listening port. A virtual LAN gives trusted friends private network addresses instead, allowing Minecraft's Direct Connection feature to reach the host.</p>
+
+      <h2>Option 1: Share a single-player LAN world</h2>
+      <ol class="steps">
+        <li><strong>Install OrbitLan on each Windows PC.</strong> One player creates a room and sends the six-digit room code to the others.</li>
+        <li><strong>Confirm everyone is connected.</strong> The host's OrbitLan address will look like <code>10.69.0.x</code>.</li>
+        <li><strong>Open the Minecraft world.</strong> On the host PC, enter the world, press Escape, choose <em>Open to LAN</em>, select the options, and start the LAN world.</li>
+        <li><strong>Copy the port shown in chat.</strong> Minecraft displays a message such as “Local game hosted on port 54321.” The port can change whenever the world is reopened.</li>
+        <li><strong>Join with Direct Connection.</strong> A friend opens Multiplayer → Direct Connection and enters the host's OrbitLan IP plus that port, for example <code>10.69.0.2:54321</code>.</li>
+      </ol>
+
+      <h2>Option 2: Use a dedicated Java server</h2>
+      <p>Run the server on the host PC as usual. Unless you changed the default, friends can add the server using the host's OrbitLan address and port <code>25565</code>, for example <code>10.69.0.2:25565</code>. You do not need to publish that port on the router because the connection travels through the private virtual LAN.</p>
+      <p>Leave <code>server-ip</code> blank in <code>server.properties</code> unless you have a specific reason to bind it. A wrong binding can prevent the server from accepting connections through the virtual adapter.</p>
+
+      <h2>Troubleshooting</h2>
+      <h3>Use Direct Connection even if the world is not listed</h3>
+      <p>Minecraft's LAN discovery may not appear consistently across virtual networks. That does not necessarily mean the connection failed. Entering <code>IP:port</code> directly is the dependable test.</p>
+      <h3>Allow Java through Windows Firewall</h3>
+      <p>On the host, allow Java or OpenJDK Platform Binary on private networks. If you run a dedicated server with a different Java installation, Windows may prompt again for that executable. Do not disable the entire firewall.</p>
+      <h3>Check versions and mods</h3>
+      <p>All players need a compatible Minecraft version. Modded games usually need matching loaders, mod versions, and configuration. OrbitLan supplies the network path; it does not reconcile game installations.</p>
+      <h3>Keep the room code private</h3>
+      <p>The room code acts as a shared secret. Only send it to players you trust, and create a new room when you no longer want the old group to join.</p>
+
+      <div class="guide-links">
+        <strong>Related guides</strong>
+        <a href="../play-lan-games-online/">How to play LAN games online</a>
+        <a href="../hamachi-alternative/">A simple open-source Hamachi alternative</a>
+      </div>
+
+      <section class="cta">
+        <h2>Try OrbitLan Community for free</h2>
+        <p>No account is required. Create a room, share one short code, and connect your Java world by private IP.</p>
+        <div class="buttons"><a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a><a class="button secondary" href="../../index.html#editions">Compare editions</a></div>
+      </section>
+    </div>
+  </article>
+</main>
+<footer><div class="wrap footer-row"><span>OrbitLan · open source · MIT</span><span><a href="../../index.html">Home</a><a href="https://github.com/furqan-ahm/orbitlan/issues">Get help</a><a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Support</a></span></div></footer>
+</body>
+</html>
+

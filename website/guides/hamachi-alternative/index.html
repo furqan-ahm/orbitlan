@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Simple Open-Source Hamachi Alternative | OrbitLan</title>
+<meta name="description" content="Looking for a Hamachi alternative for LAN games? OrbitLan is an open-source, account-free virtual LAN for small Windows groups, with direct-first connections.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/guides/hamachi-alternative/">
+<link rel="icon" type="image/webp" href="../../assets/earthspin-transparent.webp">
+<link rel="stylesheet" href="../guide.css">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="A Simple Open-Source Hamachi Alternative for LAN Games">
+<meta property="og:description" content="An account-free virtual LAN for trusted Windows groups, compatible LAN games, and direct-IP tools.">
+<meta property="og:url" content="https://orbitlan.site/guides/hamachi-alternative/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "A Simple Open-Source Hamachi Alternative for LAN Games",
+      "description": "An account-free virtual LAN for trusted Windows groups, compatible LAN games, and direct-IP tools.",
+      "datePublished": "2026-09-26",
+      "dateModified": "2026-09-26",
+      "mainEntityOfPage": "https://orbitlan.site/guides/hamachi-alternative/",
+      "image": "https://orbitlan.site/assets/orbitlan-logo.png",
+      "author": {"@type": "Person", "name": "Furqan Ahmed", "url": "https://github.com/furqan-ahm"},
+      "publisher": {"@type": "Organization", "name": "OrbitLan", "url": "https://orbitlan.site/"}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "OrbitLan", "item": "https://orbitlan.site/"},
+        {"@type": "ListItem", "position": 2, "name": "Open-source Hamachi alternative", "item": "https://orbitlan.site/guides/hamachi-alternative/"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="../../index.html"><img src="../../assets/earthspin-transparent.webp" width="35" height="35" alt=""><span>rbitLan</span></a>
+    <div class="nav-links"><a href="../../index.html#how">How it works</a><a href="https://github.com/furqan-ahm/orbitlan">Source</a><a class="download" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download</a></div>
+  </nav>
+</header>
+<main>
+  <header class="guide-head">
+    <div class="wrap">
+      <p class="eyebrow">OrbitLan guide</p>
+      <h1>A simple open-source Hamachi alternative</h1>
+      <p class="lede">OrbitLan is a small, account-free virtual LAN for trusted Windows groups that want to play compatible LAN games or connect private IP-based tools.</p>
+    </div>
+  </header>
+  <article class="article">
+    <div class="wrap article-body">
+      <p class="meta">Written by Furqan Ahmed · Updated September 26, 2026</p>
+      <p>If you need a Hamachi-style network for a game night rather than a large managed VPN platform, OrbitLan focuses on a short flow: one person creates a room, shares a six-digit code, and everyone receives an address on the same private subnet.</p>
+      <p>The project is MIT licensed and its complete source is public. There is no account inside the app. Direct peer-to-peer links are attempted first, game traffic is encrypted between peers, and an optional relay can keep a group connected when restrictive networks prevent a direct path.</p>
+
+      <h2>Where OrbitLan fits</h2>
+      <ul>
+        <li><strong>Compatible LAN and direct-IP games:</strong> useful for small groups playing Minecraft Java, older PC games, and other software that accepts private IP connections.</li>
+        <li><strong>No app account:</strong> joining is based on a temporary room code rather than a hosted user profile.</li>
+        <li><strong>Open source and self-hostable:</strong> inspect, build, or run the coordinator yourself under the MIT license.</li>
+        <li><strong>Direct-first networking:</strong> peers connect to each other when the network allows it, with encrypted relay fallback in Auto mode.</li>
+        <li><strong>Lightweight native Windows interface:</strong> the client can stay in the notification area while a game is running.</li>
+      </ul>
+
+      <h2>Important limits</h2>
+      <p>OrbitLan currently supports 64-bit Windows 10 and Windows 11. It does not yet provide clients for macOS, Linux, phones, or consoles. The free Community build can host up to four nodes; Community users can still join a larger room hosted by Supporter Edition.</p>
+      <p>It is a private virtual LAN, not a general-purpose privacy VPN. It does not hide ordinary web browsing, change your public location, or guarantee that every LAN game will work. Game discovery and firewall behavior differ by title, so direct IP remains the safest connection method when available.</p>
+      <div class="note"><strong>Security starts with the room code.</strong> Treat it like a temporary password and share it only with people you trust. The coordinator can observe connection metadata, but game frames are encrypted between peers.</div>
+
+      <h2>How to try it</h2>
+      <ol class="steps">
+        <li><strong>Download Community Edition</strong> from the official GitHub release and install it on each PC.</li>
+        <li><strong>Create or join a room</strong> with the six-digit code. The app shows connected nodes and their private OrbitLan IP addresses.</li>
+        <li><strong>Open the game's LAN mode</strong> or enter the host's OrbitLan IP in its direct-connect screen.</li>
+        <li><strong>Check the firewall if needed.</strong> Allow the game on private networks; do not disable Windows Firewall wholesale.</li>
+      </ol>
+      <p>Community Edition includes the same networking core and encryption as Supporter Edition. The $5 Supporter build adds larger hosted rooms, a Force Relay troubleshooting option, and its own visual theme. Both editions remain buildable from the public source.</p>
+
+      <div class="guide-links">
+        <strong>Related guides</strong>
+        <a href="../play-lan-games-online/">How to play LAN games online</a>
+        <a href="../minecraft-java-without-port-forwarding/">Minecraft Java without port forwarding</a>
+      </div>
+
+      <section class="cta">
+        <h2>Choose the version that fits your group</h2>
+        <p>Start free with Community, or support development with the one-time Supporter Edition.</p>
+        <div class="buttons"><a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download Community</a><a class="button secondary" href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Get Supporter — $5</a></div>
+      </section>
+    </div>
+  </article>
+</main>
+<footer><div class="wrap footer-row"><span>OrbitLan · open source · MIT</span><span><a href="../../index.html">Home</a><a href="https://github.com/furqan-ahm/orbitlan/issues">Get help</a><a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Support</a></span></div></footer>
+</body>
+</html>

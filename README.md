@@ -80,6 +80,12 @@ normally — the UI and notification-area app never request elevation. A
 [portable package](https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Portable.zip)
 is available too.
 
+New to virtual LANs? These short guides cover the common setups:
+
+- [Play compatible LAN games online with friends](https://orbitlan.site/guides/play-lan-games-online/)
+- [Play Minecraft Java without router port forwarding](https://orbitlan.site/guides/minecraft-java-without-port-forwarding/)
+- [Use OrbitLan as a simple open-source Hamachi alternative](https://orbitlan.site/guides/hamachi-alternative/)
+
 ## Community and Supporter editions
 
 OrbitLan's networking, encryption, self-hosting, tray mode, and security updates are the

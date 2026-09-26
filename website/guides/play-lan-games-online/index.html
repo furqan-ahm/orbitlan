@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Play LAN Games Online With Friends | OrbitLan</title>
+<meta name="description" content="A practical guide to playing compatible LAN games over the internet with friends using a virtual LAN, including direct-IP tips and troubleshooting.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/guides/play-lan-games-online/">
+<link rel="icon" type="image/webp" href="../../assets/earthspin-transparent.webp">
+<link rel="stylesheet" href="../guide.css">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="How to Play LAN Games Online With Friends">
+<meta property="og:description" content="Connect compatible LAN and direct-IP games across different internet connections with a virtual LAN.">
+<meta property="og:url" content="https://orbitlan.site/guides/play-lan-games-online/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "How to Play LAN Games Online With Friends",
+      "description": "A practical guide to playing compatible LAN games over the internet with a virtual LAN.",
+      "datePublished": "2026-09-26",
+      "dateModified": "2026-09-26",
+      "mainEntityOfPage": "https://orbitlan.site/guides/play-lan-games-online/",
+      "image": "https://orbitlan.site/assets/orbitlan-logo.png",
+      "author": {"@type": "Person", "name": "Furqan Ahmed", "url": "https://github.com/furqan-ahm"},
+      "publisher": {"@type": "Organization", "name": "OrbitLan", "url": "https://orbitlan.site/"}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "OrbitLan", "item": "https://orbitlan.site/"},
+        {"@type": "ListItem", "position": 2, "name": "Play LAN games online", "item": "https://orbitlan.site/guides/play-lan-games-online/"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="../../index.html"><img src="../../assets/earthspin-transparent.webp" width="35" height="35" alt=""><span>rbitLan</span></a>
+    <div class="nav-links"><a href="../../index.html#how">How it works</a><a href="https://github.com/furqan-ahm/orbitlan">Source</a><a class="download" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download</a></div>
+  </nav>
+</header>
+<main>
+  <header class="guide-head">
+    <div class="wrap">
+      <p class="eyebrow">OrbitLan guide</p>
+      <h1>How to play LAN games online with friends</h1>
+      <p class="lede">A virtual LAN lets compatible games treat PCs on different internet connections as if they were connected to the same local network.</p>
+    </div>
+  </header>
+  <article class="article">
+    <div class="wrap article-body">
+      <p class="meta">Written by Furqan Ahmed · Updated September 26, 2026</p>
+      <p>Many older multiplayer games were built for a room full of PCs connected to one router. A virtual LAN carries that local network traffic between trusted computers over the internet, so the game's LAN or direct-IP mode can work across different homes.</p>
+      <p>OrbitLan is one way to create that network on Windows. It gives each member a private <code>10.69.0.x</code> address, tries to connect peers directly, encrypts traffic between them, and can use a relay when a direct path is unavailable.</p>
+
+      <h2>What you need</h2>
+      <ul>
+        <li>A 64-bit Windows 10 or Windows 11 PC for each player.</li>
+        <li>The same compatible game version on every PC.</li>
+        <li>A game with LAN multiplayer or a direct-IP connection option.</li>
+        <li>Permission to allow the game and OrbitLan through Windows Firewall.</li>
+      </ul>
+      <div class="note"><strong>Compatibility is not universal.</strong> Some games depend on old services, unusual anti-cheat, or broadcast behavior that may not work over any virtual LAN. When the game offers both choices, direct IP is usually more dependable than automatic server discovery.</div>
+
+      <h2>Connect the game in five steps</h2>
+      <ol class="steps">
+        <li><strong>Install OrbitLan on every PC.</strong> The installer sets up the virtual network adapter that carries LAN traffic.</li>
+        <li><strong>Create a room.</strong> One player creates a room and shares its six-digit code only with people they trust.</li>
+        <li><strong>Join the same room.</strong> The other players enter that code. Wait until their entries appear as connected nodes.</li>
+        <li><strong>Host inside the game.</strong> Start the game's LAN server, local multiplayer session, or dedicated server as normal.</li>
+        <li><strong>Join by LAN or private IP.</strong> Try the LAN browser first. If it does not find the host, enter the host's OrbitLan <code>10.69.0.x</code> address in the game's direct-connect screen.</li>
+      </ol>
+
+      <h2>If the game cannot see the host</h2>
+      <h3>Use direct IP</h3>
+      <p>LAN discovery often relies on broadcast packets and game-specific behavior. Copy the host's OrbitLan IP from the app and use the game's “Direct Connect,” “Connect to IP,” or equivalent option. Add the game's port when it asks for one.</p>
+      <h3>Check Windows Firewall</h3>
+      <p>Allow the game on private networks on both PCs. If Windows prompted when the game first hosted a match, confirm that private-network access was enabled. Avoid disabling the firewall entirely.</p>
+      <h3>Match the game version</h3>
+      <p>Players usually need the same game version, patches, and multiplayer mods. A network connection cannot resolve a version mismatch.</p>
+      <h3>Expect internet latency</h3>
+      <p>The game behaves like LAN software, but the physical distance still exists. Direct connections generally give the shortest available path; relay fallback improves reachability but can add latency.</p>
+
+      <div class="guide-links">
+        <strong>Related guides</strong>
+        <a href="../minecraft-java-without-port-forwarding/">Minecraft Java without port forwarding</a>
+        <a href="../hamachi-alternative/">A simple open-source Hamachi alternative</a>
+      </div>
+
+      <section class="cta">
+        <h2>Start with the free Community Edition</h2>
+        <p>Host up to four nodes, or build the unrestricted open-source project yourself.</p>
+        <div class="buttons"><a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a><a class="button secondary" href="https://github.com/furqan-ahm/orbitlan">View source</a></div>
+      </section>
+    </div>
+  </article>
+</main>
+<footer><div class="wrap footer-row"><span>OrbitLan · open source · MIT</span><span><a href="../../index.html">Home</a><a href="https://github.com/furqan-ahm/orbitlan/issues">Get help</a><a href="https://www.patreon.com/orbitlan/posts/orbitlan-edition-170621986">Support</a></span></div></footer>
+</body>
+</html>
+
