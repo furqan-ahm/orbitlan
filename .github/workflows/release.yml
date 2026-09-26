@@ -77,16 +77,30 @@ jobs:
           - Use **OrbitLan-Installer.exe** for the normal one-click installation.
           - Use **OrbitLan-Portable.zip** if you prefer an extracted portable UI with first-run network setup.
           - SHA-256 checksum files are included for both downloads.
+          - The in-app **Support** button opens the official OrbitLan Supporter Edition on Patreon.
 
           The binaries are currently unsigned, so Windows SmartScreen may show an unknown-publisher warning.
           "@
           $notes | Set-Content build/release/notes.md -Encoding utf8
-          gh release create $tag `
-            build/release/OrbitLan-Installer.exe `
-            build/release/OrbitLan-Installer.exe.sha256 `
-            build/release/OrbitLan-Portable.zip `
-            build/release/OrbitLan-Portable.zip.sha256 `
-            --repo $env:GITHUB_REPOSITORY `
-            --verify-tag `
-            --title "OrbitLan Community Edition $tag" `
-            --notes-file build/release/notes.md
+          $assets = @(
+            "build/release/OrbitLan-Installer.exe",
+            "build/release/OrbitLan-Installer.exe.sha256",
+            "build/release/OrbitLan-Portable.zip",
+            "build/release/OrbitLan-Portable.zip.sha256"
+          )
+
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --repo $env:GITHUB_REPOSITORY --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Failed to replace release assets." }
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY `
+              --title "OrbitLan Community Edition $tag" `
+              --notes-file build/release/notes.md
+            if ($LASTEXITCODE -ne 0) { throw "Failed to update release notes." }
+          } else {
+            gh release create $tag @assets `
+              --repo $env:GITHUB_REPOSITORY `
+              --verify-tag `
+              --title "OrbitLan Community Edition $tag" `
+              --notes-file build/release/notes.md
+          }
