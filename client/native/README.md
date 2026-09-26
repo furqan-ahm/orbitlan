@@ -7,13 +7,13 @@ shell, tray, privilege boundary, and installer are native C++20/Win32.
 ## Processes
 
 - `OrbitLan.exe` runs as the signed-in user. It owns the window and notification-area icon.
-- `OrbitLanService.exe` runs as LocalSystem and owns privileged adapter/engine operations.
-- `orbitlan-engine.exe` runs only while connected, as a child of the service in a kill-on-close job.
-- `OrbitLanSetup.exe` installs the service, files, shortcut, and uninstall registration.
+- `OrbitLan.NetworkService.exe` runs as LocalSystem and owns privileged adapter/engine operations.
+- `OrbitLan.NetworkEngine.exe` runs only while connected, as a child of the service in a kill-on-close job.
+- `OrbitLan.Setup.exe` installs the driver, service, files, shortcut, and uninstall registration.
 
 Setup is the only routine operation that requests elevation. The UI never asks for administrator
-rights, and the service performs TAP installation, adapter configuration, firewall changes, and
-priority changes after installation.
+rights. Setup creates and records OrbitLan's dedicated TAP adapter; the service performs adapter
+configuration, firewall changes, and priority changes after installation.
 
 ## Security boundary
 
@@ -54,8 +54,14 @@ Build the complete release package with:
 .\scripts\build-native-release.ps1
 ```
 
-The output is `dist\OrbitLan-Native.zip`. Run `OrbitLanSetup.exe` from the extracted directory once,
-then launch OrbitLan from the Start menu without elevation.
+The release build creates two deliverables:
+
+- `dist\OrbitLan-Portable.zip` — extract it and open the top-level `OrbitLan.exe`. Its private
+  `support` directory contains the validated service, engine, driver, assets, and setup helper.
+- `dist\OrbitLan-Installer.exe` — a conventional single-file installer containing the same payload.
+
+Both request one administrator approval when system components need installation, create an owned
+TAP adapter and background service, then open the same unelevated OrbitLan client.
 
 Pass `-SigningThumbprint` to sign the four OrbitLan executables with an installed code-signing
 certificate and RFC 3161 timestamp. Unsigned packages are suitable for development only.

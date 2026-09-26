@@ -9,10 +9,12 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <uxtheme.h>
+#include <windowsx.h>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -30,6 +32,8 @@ constexpr UINT kDisconnectComplete = WM_APP + 12;
 constexpr UINT_PTR kStatusTimer = 1;
 constexpr UINT_PTR kAnimationTimer = 2;
 constexpr UINT kTaskbarCreatedFallback = WM_APP + 13;
+constexpr int kWindowWidth = 440;
+constexpr int kWindowHeight = 760;
 
 enum ControlId : int {
     kNameEdit = 1001,
@@ -46,6 +50,8 @@ enum ControlId : int {
     kPriority,
     kSettings,
     kSettingsDone,
+    kPerformance,
+    kSupport,
 };
 
 struct Node {
@@ -62,8 +68,12 @@ struct AppState {
     HFONT normal_font = nullptr;
     HFONT small_font = nullptr;
     HFONT title_font = nullptr;
+    HFONT heading_font = nullptr;
+    HFONT code_font = nullptr;
+    HFONT button_font = nullptr;
     HBRUSH field_brush = nullptr;
     std::unique_ptr<Gdiplus::Image> earth;
+    std::unique_ptr<Gdiplus::Image> header_sheet;
     GUID earth_dimension{};
     std::vector<unsigned> earth_delays;
     unsigned earth_frame = 0;
@@ -74,10 +84,19 @@ struct AppState {
     bool connected = false;
     bool connecting = false;
     bool priority = false;
+    bool performance_mode = false;
     int relay_mode = 0;
+    ULONGLONG relay_suppress_until = 0;
     bool settings_open = false;
     bool install_offered = false;
+    ULONGLONG planet_zoom_started = 0;
+    double planet_zoom_from = 1.0;
+    double planet_zoom_to = 1.0;
+    bool node_scroll_dragging = false;
+    int node_scroll_drag_offset = 0;
     std::wstring status = L"Offline";
+    std::wstring network_summary = L"Waiting for nodes…";
+    ULONGLONG copy_notice_until = 0;
     std::vector<Node> nodes;
     HWND name_edit = nullptr;
     HWND code_edit = nullptr;
@@ -93,6 +112,8 @@ struct AppState {
     HWND priority_button = nullptr;
     HWND settings_button = nullptr;
     HWND settings_done = nullptr;
+    HWND performance_button = nullptr;
+    HWND support_button = nullptr;
 };
 
 AppState g;
@@ -100,6 +121,34 @@ ULONG_PTR g_gdiplus_token = 0;
 
 COLORREF Color(unsigned red, unsigned green, unsigned blue) {
     return RGB(red, green, blue);
+}
+
+void AddRoundedRectangle(Gdiplus::GraphicsPath& path, const Gdiplus::RectF& rect,
+                         Gdiplus::REAL radius) {
+    const Gdiplus::REAL diameter = radius * 2.0f;
+    path.AddArc(rect.X, rect.Y, diameter, diameter, 180.0f, 90.0f);
+    path.AddArc(rect.GetRight() - diameter, rect.Y, diameter, diameter, 270.0f, 90.0f);
+    path.AddArc(rect.GetRight() - diameter, rect.GetBottom() - diameter, diameter, diameter,
+                0.0f, 90.0f);
+    path.AddArc(rect.X, rect.GetBottom() - diameter, diameter, diameter, 90.0f, 90.0f);
+    path.CloseFigure();
+}
+
+void FillRounded(Gdiplus::Graphics& graphics, const Gdiplus::RectF& rect,
+                 Gdiplus::REAL radius, const Gdiplus::Color& color) {
+    Gdiplus::GraphicsPath path;
+    AddRoundedRectangle(path, rect, radius);
+    Gdiplus::SolidBrush brush(color);
+    graphics.FillPath(&brush, &path);
+}
+
+void StrokeRounded(Gdiplus::Graphics& graphics, const Gdiplus::RectF& rect,
+                   Gdiplus::REAL radius, const Gdiplus::Color& color,
+                   Gdiplus::REAL width = 1.0f) {
+    Gdiplus::GraphicsPath path;
+    AddRoundedRectangle(path, rect, radius);
+    Gdiplus::Pen pen(color, width);
+    graphics.DrawPath(&pen, &path);
 }
 
 std::wstring ReadWindowText(HWND window) {
@@ -138,11 +187,15 @@ std::wstring DefaultUserName() {
 }
 
 std::wstring RandomCode() {
-    std::array<unsigned char, 4> bytes{};
+    static constexpr wchar_t alphabet[] = L"abcdefghjkmnpqrstuvwxyz23456789";
+    std::array<unsigned char, 6> bytes{};
     BCryptGenRandom(nullptr, bytes.data(), static_cast<ULONG>(bytes.size()),
                     BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-    wchar_t code[32]{};
-    swprintf_s(code, L"orbit-%02x%02x%02x%02x", bytes[0], bytes[1], bytes[2], bytes[3]);
+    std::wstring code;
+    code.reserve(bytes.size());
+    for (const unsigned char value : bytes) {
+        code.push_back(alphabet[value % (std::size(alphabet) - 1)]);
+    }
     return code;
 }
 
@@ -157,9 +210,256 @@ void Position(HWND control, int x, int y, int width, int height, bool show = tru
     SetWindowPos(control, nullptr, x, y, width, height, SWP_NOZORDER | (show ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
 }
 
+void RoundControl(HWND control, int width, int height, int radius) {
+    SetWindowRgn(control, CreateRoundRectRgn(0, 0, width + 1, height + 1, radius * 2, radius * 2), TRUE);
+}
+
+LRESULT CALLBACK InteractiveControlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam,
+                                        UINT_PTR subclass_id, DWORD_PTR) {
+    if (message == WM_SETCURSOR) {
+        SetCursor(LoadCursorW(nullptr, IDC_HAND));
+        return TRUE;
+    }
+    if (message == WM_NCDESTROY) RemoveWindowSubclass(window, InteractiveControlProc, subclass_id);
+    return DefSubclassProc(window, message, wparam, lparam);
+}
+
+void UseHandCursor(HWND control) {
+    SetWindowSubclass(control, InteractiveControlProc, 1, 0);
+}
+
+bool InRect(int x, int y, int left, int top, int right, int bottom) {
+    return x >= left && x < right && y >= top && y < bottom;
+}
+
+double CurrentPlanetScale() {
+    if (g.planet_zoom_started == 0 || g.planet_zoom_from == g.planet_zoom_to) {
+        return g.planet_zoom_to;
+    }
+    const double elapsed = static_cast<double>(GetTickCount64() - g.planet_zoom_started);
+    const double progress = std::clamp(elapsed / 680.0, 0.0, 1.0);
+    const double eased = 1.0 - std::pow(1.0 - progress, 3.0);
+    return g.planet_zoom_from + (g.planet_zoom_to - g.planet_zoom_from) * eased;
+}
+
+void BeginPlanetZoom(bool connected) {
+    g.planet_zoom_from = CurrentPlanetScale();
+    g.planet_zoom_to = connected ? 1.50 : 1.0;
+    g.planet_zoom_started = GetTickCount64();
+}
+
+bool CopyToClipboard(std::wstring_view text) {
+    if (text.empty() || !OpenClipboard(g.window)) return false;
+    EmptyClipboard();
+    const SIZE_T bytes = (text.size() + 1) * sizeof(wchar_t);
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, bytes);
+    if (memory == nullptr) {
+        CloseClipboard();
+        return false;
+    }
+    void* destination = GlobalLock(memory);
+    if (destination == nullptr) {
+        GlobalFree(memory);
+        CloseClipboard();
+        return false;
+    }
+    memcpy(destination, text.data(), text.size() * sizeof(wchar_t));
+    static_cast<wchar_t*>(destination)[text.size()] = L'\0';
+    GlobalUnlock(memory);
+    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) {
+        GlobalFree(memory);
+        CloseClipboard();
+        return false;
+    }
+    CloseClipboard();
+    return true;
+}
+
+void ShowCopyNotice(const wchar_t* message) {
+    SetWindowTextW(g.summary, message);
+    g.copy_notice_until = GetTickCount64() + 1200;
+}
+
+struct NodeScrollGeometry {
+    int count = 0;
+    int visible = 0;
+    int maximum_top = 0;
+    int top_index = 0;
+    int track_top = 3;
+    int track_height = 0;
+    int thumb_top = 0;
+    int thumb_height = 0;
+    bool shown = false;
+};
+
+NodeScrollGeometry GetNodeScrollGeometry(HWND list) {
+    RECT area{};
+    GetClientRect(list, &area);
+    NodeScrollGeometry geometry;
+    geometry.count = static_cast<int>(SendMessageW(list, LB_GETCOUNT, 0, 0));
+    geometry.visible = std::max(1, static_cast<int>((area.bottom - area.top) / 46));
+    geometry.maximum_top = std::max(0, geometry.count - geometry.visible);
+    geometry.top_index = std::clamp(
+        static_cast<int>(SendMessageW(list, LB_GETTOPINDEX, 0, 0)), 0, geometry.maximum_top);
+    geometry.track_height = std::max(0, static_cast<int>(area.bottom - 6));
+    geometry.shown = geometry.maximum_top > 0 && geometry.track_height > 0;
+    if (!geometry.shown) return geometry;
+    geometry.thumb_height = std::max(28, geometry.track_height * geometry.visible /
+                                             std::max(1, geometry.count));
+    const int travel = std::max(1, geometry.track_height - geometry.thumb_height);
+    geometry.thumb_top = geometry.track_top + travel * geometry.top_index /
+                                              std::max(1, geometry.maximum_top);
+    return geometry;
+}
+
+void DrawNodeScrollbar(HWND list) {
+    const NodeScrollGeometry geometry = GetNodeScrollGeometry(list);
+    if (!geometry.shown) return;
+    RECT area{};
+    GetClientRect(list, &area);
+    HDC dc = GetDC(list);
+    if (dc == nullptr) return;
+    Gdiplus::Graphics graphics(dc);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    Gdiplus::SolidBrush clear(Gdiplus::Color(255, 19, 24, 76));
+    graphics.FillRectangle(&clear, area.right - 10, 0, 10, area.bottom);
+    FillRounded(graphics,
+                Gdiplus::RectF(static_cast<Gdiplus::REAL>(area.right - 8),
+                               static_cast<Gdiplus::REAL>(geometry.thumb_top), 6.0f,
+                               static_cast<Gdiplus::REAL>(geometry.thumb_height)),
+                3.0f, Gdiplus::Color(255, 104, 102, 168));
+    ReleaseDC(list, dc);
+}
+
+void SetNodeTopIndex(HWND list, int index) {
+    const NodeScrollGeometry geometry = GetNodeScrollGeometry(list);
+    SendMessageW(list, LB_SETTOPINDEX,
+                 static_cast<WPARAM>(std::clamp(index, 0, geometry.maximum_top)), 0);
+    InvalidateRect(list, nullptr, TRUE);
+}
+
+int NodeIndexAtPoint(HWND list, POINT point) {
+    RECT area{};
+    GetClientRect(list, &area);
+    if (point.x < 0 || point.y < 0 || point.x >= area.right - 12 ||
+        point.y >= area.bottom) {
+        return LB_ERR;
+    }
+
+    const LRESULT count = SendMessageW(list, LB_GETCOUNT, 0, 0);
+    if (count <= 0) return LB_ERR;
+
+    const LRESULT hit = SendMessageW(list, LB_ITEMFROMPOINT, 0,
+                                     MAKELPARAM(point.x, point.y));
+    const int index = LOWORD(hit);
+    if (HIWORD(hit) != 0 || index < 0 || index >= count ||
+        static_cast<size_t>(index) >= g.nodes.size()) {
+        return LB_ERR;
+    }
+
+    RECT item{};
+    if (SendMessageW(list, LB_GETITEMRECT, static_cast<WPARAM>(index),
+                     reinterpret_cast<LPARAM>(&item)) == LB_ERR ||
+        !PtInRect(&item, point)) {
+        return LB_ERR;
+    }
+    return index;
+}
+
+LRESULT CALLBACK NodeListProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam,
+                              UINT_PTR subclass_id, DWORD_PTR) {
+    switch (message) {
+        case WM_SETCURSOR: {
+            POINT point{};
+            GetCursorPos(&point);
+            ScreenToClient(window, &point);
+            if (NodeIndexAtPoint(window, point) != LB_ERR) {
+                SetCursor(LoadCursorW(nullptr, IDC_HAND));
+                return TRUE;
+            }
+            SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+            return TRUE;
+        }
+        case WM_MOUSEWHEEL: {
+            const int direction = GET_WHEEL_DELTA_WPARAM(wparam) > 0 ? -1 : 1;
+            const NodeScrollGeometry geometry = GetNodeScrollGeometry(window);
+            SetNodeTopIndex(window, geometry.top_index + direction);
+            return 0;
+        }
+        case WM_LBUTTONDOWN: {
+            RECT area{};
+            GetClientRect(window, &area);
+            const int x = GET_X_LPARAM(lparam);
+            const int y = GET_Y_LPARAM(lparam);
+            if (x < area.right - 12) {
+                if (NodeIndexAtPoint(window, POINT{x, y}) != LB_ERR) break;
+                return 0;
+            }
+            const NodeScrollGeometry geometry = GetNodeScrollGeometry(window);
+            if (!geometry.shown) return 0;
+            if (y >= geometry.thumb_top && y < geometry.thumb_top + geometry.thumb_height) {
+                g.node_scroll_dragging = true;
+                g.node_scroll_drag_offset = y - geometry.thumb_top;
+                SetCapture(window);
+            } else {
+                SetNodeTopIndex(window, geometry.top_index +
+                    (y < geometry.thumb_top ? -geometry.visible : geometry.visible));
+            }
+            return 0;
+        }
+        case WM_MOUSEMOVE:
+            if (g.node_scroll_dragging && GetCapture() == window) {
+                const NodeScrollGeometry geometry = GetNodeScrollGeometry(window);
+                const int travel = std::max(1, geometry.track_height - geometry.thumb_height);
+                const int thumb = std::clamp(GET_Y_LPARAM(lparam) - g.node_scroll_drag_offset -
+                                                 geometry.track_top,
+                                             0, travel);
+                SetNodeTopIndex(window, (thumb * geometry.maximum_top + travel / 2) / travel);
+                return 0;
+            }
+            break;
+        case WM_LBUTTONUP:
+            if (g.node_scroll_dragging) {
+                g.node_scroll_dragging = false;
+                if (GetCapture() == window) ReleaseCapture();
+                return 0;
+            }
+            {
+                RECT area{};
+                GetClientRect(window, &area);
+                const int x = GET_X_LPARAM(lparam);
+                const int y = GET_Y_LPARAM(lparam);
+                if (x < area.right - 12) {
+                    const int index = NodeIndexAtPoint(window, POINT{x, y});
+                    if (index != LB_ERR &&
+                        CopyToClipboard(g.nodes[static_cast<size_t>(index)].ip)) {
+                        ShowCopyNotice(L"IP copied");
+                    }
+                }
+            }
+            break;
+        case WM_CAPTURECHANGED:
+            g.node_scroll_dragging = false;
+            break;
+        case WM_PAINT: {
+            const LRESULT result = DefSubclassProc(window, message, wparam, lparam);
+            DrawNodeScrollbar(window);
+            return result;
+        }
+        case WM_NCDESTROY:
+            RemoveWindowSubclass(window, NodeListProc, subclass_id);
+            break;
+    }
+    return DefSubclassProc(window, message, wparam, lparam);
+}
+
+void Layout();
+
 void SetUiState(bool connected, bool connecting) {
+    if (g.connected != connected) BeginPlanetZoom(connected);
     g.connected = connected;
     g.connecting = connecting;
+    Layout();
     const bool main_screen = !g.settings_open;
     const bool show_setup = main_screen && !connected;
     const bool show_connected = main_screen && connected;
@@ -176,6 +476,8 @@ void SetUiState(bool connected, bool connecting) {
     ShowWindow(g.priority_button, g.settings_open ? SW_SHOW : SW_HIDE);
     ShowWindow(g.coordinator_edit, g.settings_open ? SW_SHOW : SW_HIDE);
     ShowWindow(g.settings_done, g.settings_open ? SW_SHOW : SW_HIDE);
+    ShowWindow(g.performance_button, g.settings_open ? SW_SHOW : SW_HIDE);
+    ShowWindow(g.support_button, g.settings_open ? SW_SHOW : SW_HIDE);
     EnableWindow(g.connect_button, !connecting);
     SetWindowTextW(g.connect_button, connecting ? L"Connecting…" : L"Connect");
     InvalidateRect(g.window, nullptr, TRUE);
@@ -184,6 +486,7 @@ void SetUiState(bool connected, bool connecting) {
 void ReleaseVisuals() {
     KillTimer(g.window, kAnimationTimer);
     g.earth.reset();
+    g.header_sheet.reset();
     g.earth_delays.clear();
     g.earth_frame = 0;
 }
@@ -192,9 +495,15 @@ void TrimWorkingSet() {
     SetProcessWorkingSetSize(GetCurrentProcess(), static_cast<SIZE_T>(-1), static_cast<SIZE_T>(-1));
 }
 
+fs::path VisualAsset(const wchar_t* name) {
+    const fs::path direct = ExecutableDirectory() / L"assets" / name;
+    if (FileExists(direct)) return direct;
+    return ExecutableDirectory() / L"support" / L"assets" / name;
+}
+
 void LoadVisuals() {
     if (g.earth != nullptr) return;
-    const fs::path image_path = ExecutableDirectory() / L"assets" / L"earth-clouds.gif";
+    const fs::path image_path = VisualAsset(L"earth-clouds.gif");
     if (FileExists(image_path)) {
         auto image = std::make_unique<Gdiplus::Image>(image_path.c_str(), FALSE);
         if (image->GetLastStatus() == Gdiplus::Ok && image->GetFrameDimensionsCount() > 0) {
@@ -219,6 +528,11 @@ void LoadVisuals() {
             g.next_earth_frame = GetTickCount64() + g.earth_delays.front();
         }
     }
+    const fs::path header_path = VisualAsset(L"earth-header-sheet.png");
+    if (FileExists(header_path)) {
+        auto image = std::make_unique<Gdiplus::Image>(header_path.c_str(), FALSE);
+        if (image->GetLastStatus() == Gdiplus::Ok) g.header_sheet = std::move(image);
+    }
     g.animation_started = GetTickCount64();
     SetTimer(g.window, kAnimationTimer, 50, nullptr);
 }
@@ -237,24 +551,34 @@ void Layout() {
     RECT area{};
     GetClientRect(g.window, &area);
     const int width = area.right;
-    const int content = width - 56;
-    Position(g.settings_button, width - 184, 28, 36, 34);
+    const int content = width - 52;
+    Position(g.settings_button, 0, 0, 0, 0, false);
     if (g.settings_open) {
-        Position(g.relay_combo, 28, 168, 176, 40);
-        Position(g.priority_button, 220, 168, content - 192, 40);
-        Position(g.coordinator_edit, 28, 254, content, 42);
-        Position(g.settings_done, 28, 324, content, 46);
+        Position(g.relay_combo, 58, 190, 324, 40);
+        RoundControl(g.relay_combo, 324, 40, 10);
+        Position(g.coordinator_edit, 72, 303, 296, 22);
+        Position(g.performance_button, 58, 430, 324, 40);
+        RoundControl(g.performance_button, 324, 40, 12);
+        Position(g.priority_button, 58, 546, 324, 42);
+        RoundControl(g.priority_button, 324, 42, 12);
+        Position(g.support_button, 58, 610, 157, 42);
+        RoundControl(g.support_button, 157, 42, 12);
+        Position(g.settings_done, 225, 610, 157, 42);
+        RoundControl(g.settings_done, 157, 42, 12);
     } else if (!g.connected) {
-        Position(g.name_edit, 28, 150, content, 42);
-        Position(g.code_edit, 28, 228, content - 92, 42);
-        Position(g.new_button, width - 108, 228, 80, 42);
-        Position(g.connect_button, 28, 292, content, 50);
+        Position(g.name_edit, 40, 466, content - 28, 22);
+        Position(g.code_edit, 40, 551, content - 108, 22);
+        Position(g.new_button, width - 96, 539, 70, 46);
+        RoundControl(g.new_button, 70, 46, 12);
+        Position(g.connect_button, 26, 612, content, 52);
+        RoundControl(g.connect_button, content, 52, 14);
     } else {
-        Position(g.network_code, 28, 142, content, 38);
-        Position(g.virtual_ip, 28, 188, content, 28);
-        Position(g.summary, 28, 220, content, 24);
-        Position(g.nodes_list, 28, 268, content, 192);
-        Position(g.disconnect_button, 28, 476, content, 44);
+        Position(g.network_code, 42, 347, content - 28, 32);
+        Position(g.virtual_ip, 95, 383, 130, 22);
+        Position(g.summary, 245, 383, 153, 22);
+        Position(g.nodes_list, 32, 446, content - 12, 184);
+        Position(g.disconnect_button, 26, 650, content, 44);
+        RoundControl(g.disconnect_button, content, 44, 12);
     }
 }
 
@@ -334,9 +658,10 @@ void ApplyStatusJson(const std::string& json) {
     const std::wstring code = Utf8ToWide(JsonString(json, "code"));
     const std::wstring ip = Utf8ToWide(JsonString(json, "myIP"));
     const std::wstring summary = Utf8ToWide(JsonString(json, "summary"));
-    SetWindowTextW(g.network_code, (L"Network  " + code).c_str());
-    SetWindowTextW(g.virtual_ip, (L"Virtual IP  " + ip).c_str());
-    SetWindowTextW(g.summary, summary.c_str());
+    SetWindowTextW(g.network_code, code.c_str());
+    SetWindowTextW(g.virtual_ip, ip.c_str());
+    g.network_summary = summary;
+    if (g.copy_notice_until == 0) SetWindowTextW(g.summary, summary.c_str());
 
     g.nodes.clear();
     const size_t peers = json.find("\"peers\"");
@@ -359,8 +684,10 @@ void ApplyStatusJson(const std::string& json) {
     }
     SendMessageW(g.nodes_list, LB_RESETCONTENT, 0, 0);
     for (size_t i = 0; i < g.nodes.size(); ++i) {
-        SendMessageW(g.nodes_list, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(L""));
+        SendMessageW(g.nodes_list, LB_ADDSTRING, 0,
+                     reinterpret_cast<LPARAM>(g.nodes[i].name.c_str()));
     }
+    SendMessageW(g.nodes_list, LB_SETTOPINDEX, 0, 0);
 }
 
 void SetStatus(std::wstring value) {
@@ -400,6 +727,7 @@ void SaveConfiguration() {
     WriteSetting(L"Coordinator", ReadWindowText(g.coordinator_edit));
     WriteSetting(L"Relay", g.relay_mode == 1 ? L"off" : g.relay_mode == 2 ? L"on" : L"auto");
     WriteSetting(L"Priority", g.priority ? L"1" : L"0");
+    WriteSetting(L"Performance", g.performance_mode ? L"1" : L"0");
 }
 
 std::string SelectedRelay() {
@@ -407,16 +735,23 @@ std::string SelectedRelay() {
 }
 
 void ChooseRelayMode() {
+    if (GetTickCount64() < g.relay_suppress_until) return;
     RECT anchor{};
     GetWindowRect(g.relay_combo, &anchor);
     HMENU menu = CreatePopupMenu();
     AppendMenuW(menu, MF_STRING | (g.relay_mode == 0 ? MF_CHECKED : 0), 20, L"Auto — direct first");
     AppendMenuW(menu, MF_STRING | (g.relay_mode == 1 ? MF_CHECKED : 0), 21, L"Off — direct only");
     AppendMenuW(menu, MF_STRING | (g.relay_mode == 2 ? MF_CHECKED : 0), 22, L"On — force relay");
-    const UINT choice = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_NONOTIFY, anchor.left, anchor.bottom,
-                                       0, g.window, nullptr);
+    SetForegroundWindow(g.window);
+    const UINT choice = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_LEFTALIGN |
+                                      TPM_TOPALIGN | TPM_RIGHTBUTTON,
+                                       anchor.left, anchor.bottom, 0, g.window, nullptr);
     DestroyMenu(menu);
-    if (choice < 20 || choice > 22) return;
+    PostMessageW(g.window, WM_NULL, 0, 0);
+    if (choice < 20 || choice > 22) {
+        g.relay_suppress_until = GetTickCount64() + 300;
+        return;
+    }
     g.relay_mode = static_cast<int>(choice - 20);
     SetWindowTextW(g.relay_combo, g.relay_mode == 0 ? L"Relay: Auto  ▾"
                                     : g.relay_mode == 1 ? L"Relay: Off  ▾"
@@ -472,18 +807,24 @@ void StopConnection() {
 void OfferServiceInstall() {
     if (g.install_offered || CallService("PING", 350).command_ok) return;
     g.install_offered = true;
-    const fs::path setup = ExecutableDirectory() / L"OrbitLanSetup.exe";
+    fs::path setup = ExecutableDirectory() / L"support" / L"OrbitLan.Setup.exe";
+    if (!FileExists(setup)) setup = ExecutableDirectory() / L"OrbitLan.Setup.exe";
+    if (!FileExists(setup)) setup = ExecutableDirectory() / L"OrbitLan.Uninstall.exe";
     if (!FileExists(setup)) {
         MessageBoxW(g.window,
-                    L"The OrbitLan network service is not installed. Run OrbitLanSetup.exe from the release package.",
+                    L"OrbitLan's support files are missing. Extract the complete release before opening OrbitLan.",
                     L"OrbitLan service required", MB_OK | MB_ICONINFORMATION);
         return;
     }
-    if (MessageBoxW(g.window,
-                    L"OrbitLan needs its network service and TAP driver. Install them now?\n\n"
-                    L"Windows will ask for administrator approval once. Normal OrbitLan launches will not ask again.",
-                    L"Finish OrbitLan setup", MB_YESNO | MB_ICONINFORMATION) == IDYES) {
-        ShellExecuteW(g.window, L"runas", setup.c_str(), L"--install", ExecutableDirectory().c_str(), SW_SHOWNORMAL);
+    const bool portable = setup.parent_path().filename() == L"support";
+    const auto launched = reinterpret_cast<INT_PTR>(
+        ShellExecuteW(g.window, L"runas", setup.c_str(),
+                      portable ? L"--portable" : L"--install",
+                      ExecutableDirectory().c_str(), SW_SHOWNORMAL));
+    if (launched <= 32) {
+        MessageBoxW(g.window,
+                    L"OrbitLan setup was not started. Approve the Windows administrator prompt and try again.",
+                    L"OrbitLan setup needed", MB_OK | MB_ICONWARNING);
     }
 }
 
@@ -491,50 +832,94 @@ void DrawButton(const DRAWITEMSTRUCT* draw) {
     const bool hot = (draw->itemState & ODS_HOTLIGHT) != 0;
     const bool pressed = (draw->itemState & ODS_SELECTED) != 0;
     const bool disabled = (draw->itemState & ODS_DISABLED) != 0;
-    COLORREF background = Color(37, 37, 87);
-    if (draw->CtlID == kConnect) background = pressed ? Color(72, 91, 178) : Color(78, 127, 234);
-    else if (pressed || hot) background = Color(52, 52, 109);
-    HBRUSH brush = CreateSolidBrush(background);
-    FillRect(draw->hDC, &draw->rcItem, brush);
-    DeleteObject(brush);
+    const COLORREF surrounding = (draw->CtlID == kRelay || draw->CtlID == kPriority ||
+                                  draw->CtlID == kSettingsDone || draw->CtlID == kPerformance ||
+                                  draw->CtlID == kSupport)
+                                     ? Color(24, 26, 75)
+                                     : Color(55, 42, 99);
+    HBRUSH surrounding_brush = CreateSolidBrush(surrounding);
+    FillRect(draw->hDC, &draw->rcItem, surrounding_brush);
+    DeleteObject(surrounding_brush);
+    Gdiplus::Graphics graphics(draw->hDC);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    const Gdiplus::RectF bounds(0.0f, 0.0f,
+                                static_cast<Gdiplus::REAL>(draw->rcItem.right),
+                                static_cast<Gdiplus::REAL>(draw->rcItem.bottom));
+    Gdiplus::GraphicsPath path;
+    AddRoundedRectangle(path, bounds, draw->CtlID == kConnect ? 14.0f : 12.0f);
+    if (draw->CtlID == kConnect) {
+        const BYTE alpha = disabled ? 130 : pressed ? 225 : hot ? 242 : 255;
+        Gdiplus::LinearGradientBrush gradient(
+            bounds, Gdiplus::Color(alpha, 78, 127, 234), Gdiplus::Color(alpha, 120, 104, 220),
+            Gdiplus::LinearGradientModeHorizontal);
+        graphics.FillPath(&gradient, &path);
+    } else {
+        const Gdiplus::Color background(255, pressed || hot ? 52 : 37,
+                                        pressed || hot ? 52 : 37,
+                                        pressed || hot ? 109 : 87);
+        Gdiplus::SolidBrush brush(background);
+        graphics.FillPath(&brush, &path);
+    }
+    if ((draw->itemState & ODS_FOCUS) != 0) {
+        Gdiplus::Pen focus(Gdiplus::Color(190, 142, 131, 238), 1.0f);
+        graphics.DrawPath(&focus, &path);
+    }
 
     RECT text_rect = draw->rcItem;
     std::wstring text = ReadWindowText(draw->hwndItem);
-    if (draw->CtlID == kPriority) {
-        RECT box{text_rect.left + 12, text_rect.top + 11, text_rect.left + 28, text_rect.top + 27};
-        HBRUSH box_brush = CreateSolidBrush(g.priority ? Color(76, 255, 159) : Color(24, 26, 75));
-        FillRect(draw->hDC, &box, box_brush);
-        DeleteObject(box_brush);
-        FrameRect(draw->hDC, &box, GetSysColorBrush(COLOR_GRAYTEXT));
-        text_rect.left += 38;
-    }
     SetBkMode(draw->hDC, TRANSPARENT);
     SetTextColor(draw->hDC, disabled ? Color(130, 133, 169) : Color(247, 246, 251));
-    SelectObject(draw->hDC, g.normal_font);
+    SelectObject(draw->hDC, draw->CtlID == kConnect ? g.button_font : g.normal_font);
     DrawTextW(draw->hDC, text.c_str(), -1, &text_rect,
-              DT_SINGLELINE | DT_VCENTER | (draw->CtlID == kPriority ? DT_LEFT : DT_CENTER));
+              DT_SINGLELINE | DT_VCENTER | DT_CENTER);
 }
 
 void DrawNode(const DRAWITEMSTRUCT* draw) {
     if (draw->itemID >= g.nodes.size()) return;
-    HBRUSH brush = CreateSolidBrush((draw->itemID % 2) == 0 ? Color(24, 26, 75) : Color(20, 23, 69));
-    FillRect(draw->hDC, &draw->rcItem, brush);
-    DeleteObject(brush);
+    const int saved_dc = SaveDC(draw->hDC);
+    RECT list_client{};
+    GetClientRect(draw->hwndItem, &list_client);
+    IntersectClipRect(draw->hDC, list_client.left, list_client.top,
+                      list_client.right, list_client.bottom);
     const Node& node = g.nodes[draw->itemID];
-    RECT left = draw->rcItem;
-    left.left += 12;
-    left.right -= 120;
-    RECT right = draw->rcItem;
-    right.left = right.right - 112;
-    right.right -= 12;
+    Gdiplus::Graphics graphics(draw->hDC);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    const float width = static_cast<float>(draw->rcItem.right - draw->rcItem.left);
+    const float height = static_cast<float>(draw->rcItem.bottom - draw->rcItem.top);
+    const float left = static_cast<float>(draw->rcItem.left);
+    const float top = static_cast<float>(draw->rcItem.top);
+    FillRounded(graphics, Gdiplus::RectF(left + 2.0f, top + 2.0f, width - 4.0f, height - 4.0f), 11.0f,
+                Gdiplus::Color(255, 24, 26, 75));
+    const Gdiplus::Color node_color = node.state == L"direct"
+        ? Gdiplus::Color(255, 76, 255, 159)
+        : Gdiplus::Color(255, 245, 196, 74);
+    Gdiplus::SolidBrush dot(node_color);
+    graphics.FillEllipse(&dot, left + 12.0f, top + height / 2.0f - 5.0f, 10.0f, 10.0f);
+
+    RECT name_rect{draw->rcItem.left + 34, draw->rcItem.top + 4,
+                   draw->rcItem.right - 112, draw->rcItem.top + 25};
+    RECT ip_rect{draw->rcItem.left + 34, draw->rcItem.top + 24,
+                 draw->rcItem.right - 112, draw->rcItem.top + 44};
+    RECT state_rect{draw->rcItem.right - 108, draw->rcItem.top + 5,
+                    draw->rcItem.right - 12, draw->rcItem.top + 25};
+    RECT rtt_rect{draw->rcItem.right - 108, draw->rcItem.top + 24,
+                  draw->rcItem.right - 12, draw->rcItem.top + 44};
     SetBkMode(draw->hDC, TRANSPARENT);
     SelectObject(draw->hDC, g.normal_font);
     SetTextColor(draw->hDC, Color(247, 246, 251));
-    const std::wstring primary = node.name + L"   " + node.ip;
-    DrawTextW(draw->hDC, primary.c_str(), -1, &left, DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+    DrawTextW(draw->hDC, node.name.c_str(), -1, &name_rect,
+              DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+    SelectObject(draw->hDC, g.small_font);
+    SetTextColor(draw->hDC, Color(191, 195, 232));
+    DrawTextW(draw->hDC, node.ip.c_str(), -1, &ip_rect,
+              DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
     SetTextColor(draw->hDC, node.state == L"direct" ? Color(76, 255, 159) : Color(245, 196, 74));
-    const std::wstring state = node.state + L"  " + node.rtt;
-    DrawTextW(draw->hDC, state.c_str(), -1, &right, DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
+    DrawTextW(draw->hDC, node.state.c_str(), -1, &state_rect,
+              DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
+    SetTextColor(draw->hDC, Color(191, 195, 232));
+    DrawTextW(draw->hDC, node.rtt.c_str(), -1, &rtt_rect,
+              DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
+    RestoreDC(draw->hDC, saved_dc);
 }
 
 void PaintWindow(HWND window) {
@@ -572,12 +957,16 @@ void PaintWindow(HWND window) {
     DeleteObject(star_dim);
     DeleteObject(star_bright);
 
+    Gdiplus::Graphics graphics(target);
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    graphics.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
     if (g.earth != nullptr) {
-        Gdiplus::Graphics graphics(target);
-        graphics.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
-        const int earth_size = 286;
+        const double visual_scale = CurrentPlanetScale();
+        const int earth_size = static_cast<int>(286.0 * visual_scale);
         const int earth_left = (area.right - earth_size) / 2;
-        const int earth_top = area.bottom - 282;
+        const double sway = g.performance_mode ? 0.0
+            : std::sin(static_cast<double>(GetTickCount64() - g.animation_started) / 1080.0) * 5.0;
+        const int earth_top = 194 - earth_size / 2 + static_cast<int>(sway);
         if (g.connecting) {
             const double phase = static_cast<double>((GetTickCount64() - g.animation_started) % 1400) / 1400.0;
             const int radius = 94 + static_cast<int>(phase * 95);
@@ -586,74 +975,210 @@ void PaintWindow(HWND window) {
             graphics.DrawEllipse(&pulse, earth_left + earth_size / 2 - radius,
                                  earth_top + earth_size / 2 - radius, radius * 2, radius * 2);
         }
-        graphics.DrawImage(g.earth.get(), earth_left, earth_top, earth_size, earth_size);
-        if (g.connected && !g.nodes.empty()) {
-            const double time = static_cast<double>(GetTickCount64() - g.animation_started) / 2400.0;
-            std::vector<Gdiplus::PointF> points;
-            const size_t count = std::clamp<size_t>(g.nodes.size() + 2, 3, 8);
-            points.reserve(count);
-            for (size_t i = 0; i < count; ++i) {
-                const double angle = time + 6.283185307 * static_cast<double>(i) / count;
-                points.emplace_back(
-                    static_cast<Gdiplus::REAL>(earth_left + earth_size / 2 + std::cos(angle) * 132.0),
-                    static_cast<Gdiplus::REAL>(earth_top + earth_size / 2 + std::sin(angle) * 68.0));
-            }
-            Gdiplus::Pen link(Gdiplus::Color(115, 69, 242, 154), 1.5f);
-            Gdiplus::SolidBrush node(Gdiplus::Color(235, 76, 255, 159));
-            for (size_t i = 0; i < points.size(); ++i) {
-                graphics.DrawLine(&link, points[i], points[(i + 1) % points.size()]);
-                graphics.FillEllipse(&node, points[i].X - 4.0f, points[i].Y - 4.0f, 8.0f, 8.0f);
+        struct MeshPoint {
+            Gdiplus::REAL x;
+            Gdiplus::REAL y;
+            Gdiplus::REAL size;
+            double depth;
+        };
+        std::array<MeshPoint, 8> mesh{};
+        size_t mesh_count = 0;
+        if (g.connected && !g.nodes.empty() && !g.performance_mode) {
+            static constexpr std::array<double, 8> latitudes{
+                -0.64, 0.08, 0.62, -0.22, 0.38, -0.48, 0.72, 0.18};
+            const double time = static_cast<double>(GetTickCount64() - g.animation_started) / 1000.0;
+            mesh_count = std::clamp<size_t>(g.nodes.size() + 2, 2, mesh.size());
+            const double center_x = earth_left + earth_size / 2.0;
+            const double center_y = earth_top + earth_size / 2.0;
+            for (size_t i = 0; i < mesh_count; ++i) {
+                const double longitude = i * (6.283185307 / mesh.size()) + (i % 2) * 0.34 +
+                                         time * (0.19 + (i % 3) * 0.012);
+                const double latitude = latitudes[i] + std::sin(time * 0.31 + i * 0.8) * 0.06;
+                const double cos_latitude = std::cos(latitude);
+                const double depth = std::cos(longitude) * cos_latitude;
+                const double orbit_radius = (122.0 + (i % 3) * 4.0) * visual_scale;
+                mesh[i] = {
+                    static_cast<Gdiplus::REAL>(center_x + std::sin(longitude) * cos_latitude * orbit_radius),
+                    static_cast<Gdiplus::REAL>(center_y - std::sin(latitude) * 103.0 * visual_scale +
+                                               depth * 10.0 * visual_scale),
+                    static_cast<Gdiplus::REAL>((8.5 + (depth + 1.0) * 2.4) * visual_scale),
+                    depth,
+                };
             }
         }
+        static constexpr std::array<std::pair<size_t, size_t>, 14> links{{
+            {0, 1}, {1, 2}, {2, 0}, {2, 3}, {3, 0}, {3, 4}, {4, 1},
+            {4, 5}, {5, 2}, {5, 6}, {6, 3}, {6, 7}, {7, 4}, {7, 0},
+        }};
+        const auto draw_mesh_layer = [&](bool front) {
+            for (size_t index = 0; index < links.size(); ++index) {
+                const auto [a, b] = links[index];
+                if (a >= mesh_count || b >= mesh_count) continue;
+                const double depth = (mesh[a].depth + mesh[b].depth) / 2.0;
+                if ((depth >= 0.0) != front) continue;
+                const BYTE alpha = static_cast<BYTE>(front ? 145 + std::max(0.0, depth) * 70.0
+                                                            : 44 + (depth + 1.0) * 24.0);
+                Gdiplus::Pen line(Gdiplus::Color(alpha, 69, 242, 154), 1.7f);
+                Gdiplus::REAL dash_pattern[]{2.2f, 2.8f};
+                line.SetDashPattern(dash_pattern, 2);
+                line.SetDashOffset(static_cast<Gdiplus::REAL>(-(GetTickCount64() / 145.0 + index * 0.7)));
+                graphics.DrawLine(&line, mesh[a].x, mesh[a].y, mesh[b].x, mesh[b].y);
+            }
+            for (size_t i = 0; i < mesh_count; ++i) {
+                if ((mesh[i].depth >= 0.0) != front) continue;
+                const BYTE alpha = static_cast<BYTE>(front ? 205 + std::max(0.0, mesh[i].depth) * 45.0
+                                                            : 82 + (mesh[i].depth + 1.0) * 34.0);
+                Gdiplus::SolidBrush fill(Gdiplus::Color(alpha, 76, 255, 159));
+                Gdiplus::Pen edge(Gdiplus::Color(alpha, 7, 92, 60), 1.6f);
+                const Gdiplus::REAL half = mesh[i].size / 2.0f;
+                graphics.FillEllipse(&fill, mesh[i].x - half, mesh[i].y - half,
+                                     mesh[i].size, mesh[i].size);
+                graphics.DrawEllipse(&edge, mesh[i].x - half, mesh[i].y - half,
+                                     mesh[i].size, mesh[i].size);
+            }
+        };
+        draw_mesh_layer(false);
+        graphics.DrawImage(g.earth.get(), earth_left, earth_top, earth_size, earth_size);
+        draw_mesh_layer(true);
     }
 
-    DrawIconEx(target, 26, 20, g.icon, 54, 54, 0, nullptr, DI_NORMAL);
+    if (g.header_sheet != nullptr) {
+        const int frame = static_cast<int>(g.earth_frame % 100);
+        graphics.DrawImage(g.header_sheet.get(), Gdiplus::Rect(26, 18, 29, 29),
+                           (frame % 10) * 48, (frame / 10) * 48, 48, 48,
+                           Gdiplus::UnitPixel);
+    } else {
+        DrawIconEx(target, 26, 18, g.icon, 29, 29, 0, nullptr, DI_NORMAL);
+    }
     SetBkMode(target, TRANSPARENT);
     SetTextColor(target, Color(247, 246, 251));
     SelectObject(target, g.title_font);
-    RECT title{84, 20, 300, 58};
-    DrawTextW(target, L"OrbitLan", -1, &title, DT_SINGLELINE | DT_VCENTER);
+    RECT title{54, 17, 164, 48};
+    DrawTextW(target, L"rbitLan", -1, &title, DT_SINGLELINE | DT_VCENTER);
+
+    const Gdiplus::RectF status_pill(214.0f, 18.0f, 110.0f, 29.0f);
+    FillRounded(graphics, status_pill, 14.0f, Gdiplus::Color(255, 24, 26, 75));
+    const Gdiplus::Color status_color = g.connected ? Gdiplus::Color(255, 76, 255, 159)
+                                         : g.connecting ? Gdiplus::Color(255, 126, 145, 255)
+                                                        : Gdiplus::Color(255, 191, 195, 232);
+    Gdiplus::SolidBrush status_dot(status_color);
+    graphics.FillEllipse(&status_dot, 224.0f, 29.0f, 7.0f, 7.0f);
     SelectObject(target, g.small_font);
-    SetTextColor(target, Color(191, 195, 232));
-    RECT subtitle{86, 52, 330, 74};
-    DrawTextW(target, L"PRIVATE VIRTUAL LAN", -1, &subtitle, DT_SINGLELINE | DT_VCENTER);
-
-    const COLORREF status_color = g.connected ? Color(76, 255, 159)
-                                  : g.connecting ? Color(126, 145, 255)
-                                                 : Color(191, 195, 232);
-    HBRUSH dot = CreateSolidBrush(status_color);
-    RECT dot_rect{area.right - 142, 40, area.right - 133, 49};
-    FillRect(target, &dot_rect, dot);
-    DeleteObject(dot);
     SetTextColor(target, Color(247, 246, 251));
-    RECT status_rect{area.right - 126, 28, area.right - 22, 61};
-    DrawTextW(target, g.status.c_str(), -1, &status_rect, DT_SINGLELINE | DT_VCENTER | DT_RIGHT | DT_END_ELLIPSIS);
-
+    RECT status_rect{236, 18, 317, 47};
+    DrawTextW(target, g.status.c_str(), -1, &status_rect,
+              DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_END_ELLIPSIS);
+    SetTextColor(target, Color(191, 195, 232));
     SelectObject(target, g.normal_font);
-    SetTextColor(target, Color(201, 199, 255));
+    RECT gear{330, 17, 354, 48};
+    RECT minimize{363, 17, 387, 48};
+    RECT close{396, 17, 420, 48};
+    DrawTextW(target, L"⚙", -1, &gear, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+    DrawTextW(target, L"—", -1, &minimize, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+    DrawTextW(target, L"×", -1, &close, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+
     if (g.settings_open) {
-        RECT heading{28, 96, area.right - 28, 134};
+        Gdiplus::SolidBrush dim(Gdiplus::Color(208, 5, 10, 24));
+        graphics.FillRectangle(&dim, 0, 0, area.right, area.bottom);
+        const Gdiplus::RectF card(36.0f, 75.0f, 368.0f, 610.0f);
+        FillRounded(graphics, card, 20.0f, Gdiplus::Color(255, 24, 26, 75));
+        StrokeRounded(graphics, card, 20.0f, Gdiplus::Color(255, 52, 52, 109));
+        SelectObject(target, g.heading_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT heading{58, 94, 300, 124};
         DrawTextW(target, L"Settings", -1, &heading, DT_SINGLELINE | DT_VCENTER);
-        RECT relay_label{30, 140, 220, 166};
-        DrawTextW(target, L"RELAY MODE", -1, &relay_label, DT_SINGLELINE | DT_VCENTER);
-        RECT coordinator_label{30, 226, area.right - 28, 252};
-        DrawTextW(target, L"COORDINATOR", -1, &coordinator_label, DT_SINGLELINE | DT_VCENTER);
+        SelectObject(target, g.normal_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT settings_close{364, 94, 384, 124};
+        DrawTextW(target, L"×", -1, &settings_close, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+        HBRUSH divider_brush = CreateSolidBrush(Color(52, 52, 109));
+        RECT divider{58, 137, 382, 138};
+        FillRect(target, &divider, divider_brush);
+        DeleteObject(divider_brush);
+
+        SelectObject(target, g.normal_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT relay_label{58, 151, 250, 174};
+        DrawTextW(target, L"Relay mode", -1, &relay_label, DT_SINGLELINE | DT_VCENTER);
         SelectObject(target, g.small_font);
         SetTextColor(target, Color(191, 195, 232));
-        RECT note{28, 382, area.right - 28, 426};
-        DrawTextW(target, L"Network changes are saved locally and applied on the next connection.",
-                  -1, &note, DT_WORDBREAK | DT_LEFT);
+        RECT relay_note{58, 172, 382, 190};
+        DrawTextW(target, L"Auto tries direct first, then a relay if needed.", -1, &relay_note,
+                  DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+        SelectObject(target, g.normal_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT coordinator_label{58, 246, 250, 269};
+        DrawTextW(target, L"Coordinator", -1, &coordinator_label, DT_SINGLELINE | DT_VCENTER);
+        SelectObject(target, g.small_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT coordinator_note{58, 268, 382, 290};
+        DrawTextW(target, L"Change this only for a self-hosted coordinator.", -1, &coordinator_note,
+                  DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS);
+        FillRounded(graphics, Gdiplus::RectF(58.0f, 291.0f, 324.0f, 46.0f), 12.0f,
+                    Gdiplus::Color(255, 24, 26, 75));
+        StrokeRounded(graphics, Gdiplus::RectF(58.0f, 291.0f, 324.0f, 46.0f), 12.0f,
+                      Gdiplus::Color(255, 53, 54, 111));
+        RECT divider_two{58, 355, 382, 356};
+        divider_brush = CreateSolidBrush(Color(52, 52, 109));
+        FillRect(target, &divider_two, divider_brush);
+        DeleteObject(divider_brush);
+        SelectObject(target, g.normal_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT performance_label{58, 369, 382, 391};
+        DrawTextW(target, L"Performance mode", -1, &performance_label, DT_SINGLELINE | DT_VCENTER);
+        SelectObject(target, g.small_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT performance_note{58, 393, 382, 426};
+        DrawTextW(target, L"Turns off mesh depth and floating motion. Earth and stars remain animated.",
+                  -1, &performance_note, DT_WORDBREAK | DT_LEFT);
+        SelectObject(target, g.normal_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT priority_label{58, 486, 382, 508};
+        DrawTextW(target, L"Prioritize OrbitLan adapter", -1, &priority_label,
+                  DT_SINGLELINE | DT_VCENTER);
+        SelectObject(target, g.small_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT priority_note{58, 510, 382, 541};
+        DrawTextW(target, L"Helps older games discover LAN sessions over the virtual adapter.", -1,
+                  &priority_note, DT_WORDBREAK | DT_LEFT);
+        SetTextColor(target, Color(153, 157, 200));
+        RECT version{58, 656, 382, 676};
+        DrawTextW(target, L"OrbitLan 2.0", -1, &version,
+                  DT_SINGLELINE | DT_VCENTER | DT_CENTER);
     } else if (!g.connected) {
-        RECT heading{28, 96, area.right - 28, 128};
-        DrawTextW(target, L"Create or join a LAN", -1, &heading, DT_SINGLELINE | DT_VCENTER);
-        RECT name_label{30, 126, 220, 148};
-        DrawTextW(target, L"DISPLAY NAME", -1, &name_label, DT_SINGLELINE | DT_VCENTER);
-        RECT code_label{30, 204, 220, 226};
-        DrawTextW(target, L"NETWORK CODE", -1, &code_label, DT_SINGLELINE | DT_VCENTER);
+        SelectObject(target, g.heading_font);
+        SetTextColor(target, Color(247, 246, 251));
+        RECT heading{26, 362, area.right - 26, 391};
+        DrawTextW(target, L"Join a network", -1, &heading, DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+        SelectObject(target, g.small_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT subheading{26, 392, area.right - 26, 417};
+        DrawTextW(target, L"Everyone on the same code shares one LAN.", -1, &subheading,
+                  DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+        RECT name_label{28, 429, 220, 452};
+        DrawTextW(target, L"Your name", -1, &name_label, DT_SINGLELINE | DT_VCENTER);
+        FillRounded(graphics, Gdiplus::RectF(26.0f, 454.0f, 388.0f, 46.0f), 12.0f,
+                    Gdiplus::Color(255, 24, 26, 75));
+        StrokeRounded(graphics, Gdiplus::RectF(26.0f, 454.0f, 388.0f, 46.0f), 12.0f,
+                      Gdiplus::Color(255, 53, 54, 111));
+        RECT code_label{28, 514, 220, 537};
+        DrawTextW(target, L"Network code", -1, &code_label, DT_SINGLELINE | DT_VCENTER);
+        FillRounded(graphics, Gdiplus::RectF(26.0f, 539.0f, 308.0f, 46.0f), 12.0f,
+                    Gdiplus::Color(255, 24, 26, 75));
+        StrokeRounded(graphics, Gdiplus::RectF(26.0f, 539.0f, 308.0f, 46.0f), 12.0f,
+                      Gdiplus::Color(255, 53, 54, 111));
     } else {
-        RECT heading{28, 96, area.right - 28, 130};
-        DrawTextW(target, L"Your LAN is live", -1, &heading, DT_SINGLELINE | DT_VCENTER);
-        RECT nodes{30, 244, 220, 268};
+        FillRounded(graphics, Gdiplus::RectF(26.0f, 326.0f, 388.0f, 86.0f), 18.0f,
+                    Gdiplus::Color(255, 24, 26, 75));
+        SelectObject(target, g.small_font);
+        SetTextColor(target, Color(191, 195, 232));
+        RECT code_label{42, 332, 220, 348};
+        DrawTextW(target, L"NETWORK CODE", -1, &code_label, DT_SINGLELINE | DT_VCENTER);
+        RECT ip_label{42, 382, 94, 405};
+        DrawTextW(target, L"Your IP", -1, &ip_label, DT_SINGLELINE | DT_VCENTER);
+        FillRounded(graphics, Gdiplus::RectF(26.0f, 416.0f, 388.0f, 224.0f), 16.0f,
+                    Gdiplus::Color(255, 19, 24, 76));
+        RECT nodes{42, 419, 220, 441};
         DrawTextW(target, L"NODES", -1, &nodes, DT_SINGLELINE | DT_VCENTER);
     }
     BitBlt(dc, 0, 0, area.right, area.bottom, target, 0, 0, SRCCOPY);
@@ -673,15 +1198,30 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
             g.window = window;
             const BOOL dark = TRUE;
             DwmSetWindowAttribute(window, 20, &dark, sizeof(dark));
+            const DWORD corner_preference = 2;
+            DwmSetWindowAttribute(window, 33, &corner_preference, sizeof(corner_preference));
+            const DWORD border_color = 0xFFFFFFFE;
+            DwmSetWindowAttribute(window, 34, &border_color, sizeof(border_color));
+            SetWindowRgn(window, CreateRoundRectRgn(0, 0, kWindowWidth + 1, kWindowHeight + 1,
+                                                    24, 24), TRUE);
             g.normal_font = CreateFontW(-16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                                        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                                        DEFAULT_PITCH, L"Segoe UI");
             g.small_font = CreateFontW(-13, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                                       OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                                       DEFAULT_PITCH, L"Segoe UI");
-            g.title_font = CreateFontW(-28, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+            g.title_font = CreateFontW(-21, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                      OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                      DEFAULT_PITCH, L"Segoe UI Variable Display");
+            g.heading_font = CreateFontW(-22, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                         DEFAULT_PITCH, L"Segoe UI");
+            g.code_font = CreateFontW(-23, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                                       OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                                       DEFAULT_PITCH, L"Segoe UI");
+            g.button_font = CreateFontW(-16, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                        DEFAULT_PITCH, L"Segoe UI");
             g.field_brush = CreateSolidBrush(Color(24, 26, 75));
 
             g.name_edit = MakeControl(L"EDIT", ReadSetting(L"Name", DefaultUserName()).c_str(),
@@ -689,12 +1229,19 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
             g.code_edit = MakeControl(L"EDIT", RandomCode().c_str(), WS_TABSTOP | ES_AUTOHSCROLL, kCodeEdit);
             g.new_button = MakeControl(L"BUTTON", L"New", WS_TABSTOP | BS_OWNERDRAW, kNewCode);
             g.connect_button = MakeControl(L"BUTTON", L"Connect", WS_TABSTOP | BS_OWNERDRAW, kConnect);
-            g.network_code = MakeControl(L"STATIC", L"Network  —", SS_LEFT | SS_CENTERIMAGE, kNetworkCode);
-            g.virtual_ip = MakeControl(L"STATIC", L"Virtual IP  —", SS_LEFT | SS_CENTERIMAGE, kVirtualIp);
-            g.summary = MakeControl(L"STATIC", L"Waiting for nodes…", SS_LEFT | SS_CENTERIMAGE, kSummary);
-            g.nodes_list = MakeControl(L"LISTBOX", L"", LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT |
-                                                          WS_VSCROLL,
+            g.network_code = MakeControl(L"STATIC", L"—", SS_LEFT | SS_CENTERIMAGE | SS_NOTIFY,
+                                         kNetworkCode);
+            SendMessageW(g.network_code, WM_SETFONT, reinterpret_cast<WPARAM>(g.code_font), TRUE);
+            g.virtual_ip = MakeControl(L"STATIC", L"—", SS_LEFT | SS_CENTERIMAGE | SS_NOTIFY,
+                                      kVirtualIp);
+            g.summary = MakeControl(L"STATIC", L"Waiting for nodes…", SS_RIGHT | SS_CENTERIMAGE, kSummary);
+            SendMessageW(g.virtual_ip, WM_SETFONT, reinterpret_cast<WPARAM>(g.small_font), TRUE);
+            SendMessageW(g.summary, WM_SETFONT, reinterpret_cast<WPARAM>(g.small_font), TRUE);
+            g.nodes_list = MakeControl(L"LISTBOX", L"", LBS_OWNERDRAWFIXED | LBS_HASSTRINGS |
+                                                          LBS_NOINTEGRALHEIGHT,
                                        kNodes);
+            SetWindowTheme(g.nodes_list, L"DarkMode_Explorer", nullptr);
+            SetWindowSubclass(g.nodes_list, NodeListProc, 2, 0);
             g.disconnect_button = MakeControl(L"BUTTON", L"Disconnect", WS_TABSTOP | BS_OWNERDRAW, kDisconnect);
             g.relay_combo = MakeControl(L"BUTTON", L"Relay: Auto  ▾", WS_TABSTOP | BS_OWNERDRAW,
                                         kRelay);
@@ -707,10 +1254,21 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
                 ReadSetting(L"Coordinator", Utf8ToWide(kDefaultCoordinator)).c_str(),
                 WS_TABSTOP | ES_AUTOHSCROLL, kCoordinator);
             g.priority = ReadSetting(L"Priority", L"0") == L"1";
-            g.priority_button = MakeControl(L"BUTTON", L"Prioritize adapter", WS_TABSTOP | BS_OWNERDRAW,
+            g.priority_button = MakeControl(L"BUTTON", g.priority ? L"Turn off" : L"Turn on",
+                                            WS_TABSTOP | BS_OWNERDRAW,
                                             kPriority);
             g.settings_button = MakeControl(L"BUTTON", L"⚙", WS_TABSTOP | BS_OWNERDRAW, kSettings);
-            g.settings_done = MakeControl(L"BUTTON", L"Done", WS_TABSTOP | BS_OWNERDRAW, kSettingsDone);
+            g.settings_done = MakeControl(L"BUTTON", L"Save", WS_TABSTOP | BS_OWNERDRAW, kSettingsDone);
+            g.performance_mode = ReadSetting(L"Performance", L"0") == L"1";
+            g.performance_button = MakeControl(
+                L"BUTTON", g.performance_mode ? L"Turn off" : L"Turn on",
+                WS_TABSTOP | BS_OWNERDRAW, kPerformance);
+            g.support_button = MakeControl(L"BUTTON", L"Support", WS_TABSTOP | BS_OWNERDRAW, kSupport);
+            for (HWND control : {g.new_button, g.connect_button, g.disconnect_button, g.relay_combo,
+                                 g.priority_button, g.settings_done, g.performance_button,
+                                 g.support_button, g.network_code, g.virtual_ip}) {
+                UseHandCursor(control);
+            }
 
             AddTrayIcon();
             LoadVisuals();
@@ -734,11 +1292,90 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
             }
             return 0;
         case WM_TIMER:
-            if (wparam == kStatusTimer) PollStatus();
+            if (wparam == kStatusTimer) {
+                if (g.copy_notice_until != 0 && GetTickCount64() >= g.copy_notice_until) {
+                    g.copy_notice_until = 0;
+                    SetWindowTextW(g.summary, g.network_summary.c_str());
+                }
+                PollStatus();
+            }
             else if (wparam == kAnimationTimer) AdvanceVisuals();
             return 0;
+        case WM_NCHITTEST: {
+            POINT point{GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam)};
+            ScreenToClient(window, &point);
+            if (point.y >= 8 && point.y < 55) {
+                if ((point.x >= 326 && point.x < 425) || g.settings_open) return HTCLIENT;
+                return HTCAPTION;
+            }
+            return HTCLIENT;
+        }
+        case WM_SETCURSOR: {
+            if (reinterpret_cast<HWND>(wparam) != window) break;
+            POINT point{};
+            GetCursorPos(&point);
+            ScreenToClient(window, &point);
+            const bool header_action = InRect(point.x, point.y, 326, 8, 425, 55);
+            const bool overlay_close = g.settings_open && InRect(point.x, point.y, 356, 88, 392, 132);
+            if (header_action || overlay_close) {
+                SetCursor(LoadCursorW(nullptr, IDC_HAND));
+                return TRUE;
+            }
+            const bool setup_field = !g.settings_open && !g.connected &&
+                (InRect(point.x, point.y, 26, 454, 414, 500) ||
+                 InRect(point.x, point.y, 26, 539, 334, 585));
+            const bool settings_field = g.settings_open && InRect(point.x, point.y, 58, 291, 382, 337);
+            if (setup_field || settings_field) {
+                SetCursor(LoadCursorW(nullptr, IDC_IBEAM));
+                return TRUE;
+            }
+            break;
+        }
+        case WM_LBUTTONDOWN: {
+            const int x = GET_X_LPARAM(lparam);
+            const int y = GET_Y_LPARAM(lparam);
+            if (!g.settings_open && !g.connected && InRect(x, y, 26, 454, 414, 500)) {
+                SetFocus(g.name_edit);
+                return 0;
+            }
+            if (!g.settings_open && !g.connected && InRect(x, y, 26, 539, 334, 585)) {
+                SetFocus(g.code_edit);
+                return 0;
+            }
+            if (g.settings_open && InRect(x, y, 58, 291, 382, 337)) {
+                SetFocus(g.coordinator_edit);
+                return 0;
+            }
+            break;
+        }
+        case WM_LBUTTONUP: {
+            const int x = GET_X_LPARAM(lparam);
+            const int y = GET_Y_LPARAM(lparam);
+            if (g.settings_open && x >= 356 && x <= 392 && y >= 88 && y <= 132) {
+                ToggleSettings(false);
+            } else if (y >= 8 && y <= 55 && x >= 326 && x < 359) {
+                ToggleSettings(!g.settings_open);
+            } else if (y >= 8 && y <= 55 && x >= 359 && x < 392) {
+                SendMessageW(window, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+            } else if (y >= 8 && y <= 55 && x >= 392 && x < 425) {
+                SendMessageW(window, WM_CLOSE, 0, 0);
+            } else if (g.settings_open && (x < 36 || x > 404 || y < 75 || y > 685)) {
+                ToggleSettings(false);
+            }
+            return 0;
+        }
         case WM_COMMAND:
             switch (LOWORD(wparam)) {
+                case kNetworkCode:
+                    if (g.connected && CopyToClipboard(ReadWindowText(g.network_code))) {
+                        ShowCopyNotice(L"Code copied");
+                    }
+                    return 0;
+                case kVirtualIp:
+                    if (g.connected && CopyToClipboard(ReadWindowText(g.virtual_ip))) {
+                        ShowCopyNotice(L"IP copied");
+                    }
+                    return 0;
                 case kNewCode:
                     SetWindowTextW(g.code_edit, RandomCode().c_str());
                     return 0;
@@ -753,9 +1390,22 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
                     return 0;
                 case kPriority:
                     g.priority = !g.priority;
+                    SetWindowTextW(g.priority_button, g.priority ? L"Turn off" : L"Turn on");
                     SaveConfiguration();
                     InvalidateRect(g.priority_button, nullptr, TRUE);
                     if (g.connected) CallService(g.priority ? "PRIORITY\t1" : "PRIORITY\t0", 3000);
+                    return 0;
+                case kPerformance:
+                    g.performance_mode = !g.performance_mode;
+                    SetWindowTextW(g.performance_button,
+                                   g.performance_mode ? L"Turn off" : L"Turn on");
+                    SaveConfiguration();
+                    InvalidateRect(g.performance_button, nullptr, TRUE);
+                    InvalidateRect(g.window, nullptr, FALSE);
+                    return 0;
+                case kSupport:
+                    ShellExecuteW(window, L"open", L"https://github.com/furqan-ahm/orbitlan",
+                                  nullptr, nullptr, SW_SHOWNORMAL);
                     return 0;
                 case kSettings:
                     ToggleSettings(!g.settings_open);
@@ -792,7 +1442,7 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
         }
         case WM_MEASUREITEM: {
             auto* measure = reinterpret_cast<MEASUREITEMSTRUCT*>(lparam);
-            measure->itemHeight = measure->CtlID == kNodes ? 34 : 32;
+            measure->itemHeight = measure->CtlID == kNodes ? 46 : 32;
             return TRUE;
         }
         case WM_DRAWITEM: {
@@ -807,15 +1457,24 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
             SetBkColor(dc, Color(24, 26, 75));
             return reinterpret_cast<LRESULT>(g.field_brush);
         }
+        case WM_CTLCOLORLISTBOX: {
+            HDC dc = reinterpret_cast<HDC>(wparam);
+            SetTextColor(dc, Color(247, 246, 251));
+            SetBkColor(dc, Color(19, 24, 76));
+            return reinterpret_cast<LRESULT>(g.field_brush);
+        }
         case WM_CTLCOLORSTATIC: {
             HDC dc = reinterpret_cast<HDC>(wparam);
             SetTextColor(dc, Color(247, 246, 251));
-            SetBkMode(dc, TRANSPARENT);
-            return reinterpret_cast<LRESULT>(GetStockObject(NULL_BRUSH));
+            SetBkMode(dc, OPAQUE);
+            SetBkColor(dc, Color(24, 26, 75));
+            return reinterpret_cast<LRESULT>(g.field_brush);
         }
         case WM_PAINT:
             PaintWindow(window);
             return 0;
+        case WM_ERASEBKGND:
+            return 1;
         case WM_CLOSE:
             ReleaseVisuals();
             ShowWindow(window, SW_HIDE);
@@ -852,6 +1511,9 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lpa
             DeleteObject(g.normal_font);
             DeleteObject(g.small_font);
             DeleteObject(g.title_font);
+            DeleteObject(g.heading_font);
+            DeleteObject(g.code_font);
+            DeleteObject(g.button_font);
             DeleteObject(g.field_brush);
             PostQuitMessage(0);
             return 0;
@@ -894,16 +1556,13 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int show) {
     window_class.style = CS_HREDRAW | CS_VREDRAW;
     RegisterClassExW(&window_class);
 
-    RECT desired{0, 0, 480, 720};
-    AdjustWindowRectEx(&desired, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-                       FALSE, 0);
-    const int width = desired.right - desired.left;
-    const int height = desired.bottom - desired.top;
+    const int width = kWindowWidth;
+    const int height = kWindowHeight;
     const int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
     const int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
-    HWND window = CreateWindowExW(0, kUiWindowClass, L"OrbitLan", WS_OVERLAPPED | WS_CAPTION |
-                                  WS_SYSMENU | WS_MINIMIZEBOX, x, y, width, height, nullptr,
-                                  nullptr, instance, nullptr);
+    HWND window = CreateWindowExW(WS_EX_APPWINDOW, kUiWindowClass, L"OrbitLan",
+                                  WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN,
+                                  x, y, width, height, nullptr, nullptr, instance, nullptr);
     if (window == nullptr) return 1;
     ShowWindow(window, show);
     UpdateWindow(window);

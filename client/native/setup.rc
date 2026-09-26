@@ -1,7 +1,5 @@
 #include "resource.h"
 
-IDI_ORBITLAN ICON "../ui/orbitlan.ico"
-
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 2,0,0,0
  PRODUCTVERSION 2,0,0,0
@@ -17,8 +15,8 @@ BEGIN
       VALUE "CompanyName", "Furqan Ahmad\0"
       VALUE "FileDescription", "OrbitLan setup\0"
       VALUE "FileVersion", "2.0.0\0"
-      VALUE "InternalName", "OrbitLanSetup\0"
-      VALUE "OriginalFilename", "OrbitLanSetup.exe\0"
+      VALUE "InternalName", "OrbitLan.Setup\0"
+      VALUE "OriginalFilename", "OrbitLan.Setup.exe\0"
       VALUE "ProductName", "OrbitLan\0"
       VALUE "ProductVersion", "2.0.0\0"
     END

@@ -114,15 +114,36 @@ bool HttpControl(std::wstring_view method, std::wstring_view path, std::string& 
     return true;
 }
 
-bool AdapterPresent() {
+struct AdapterRecord {
+    std::wstring guid;
+    std::wstring connection_name;
+};
+
+std::wstring RegistryString(const std::wstring& subkey, const wchar_t* value) {
+    HKEY key = nullptr;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey.c_str(), 0,
+                      KEY_READ | KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
+        return {};
+    }
+    wchar_t buffer[512]{};
+    DWORD type = 0;
+    DWORD bytes = sizeof(buffer);
+    const LONG result = RegQueryValueExW(key, value, nullptr, &type,
+                                         reinterpret_cast<BYTE*>(buffer), &bytes);
+    RegCloseKey(key);
+    return result == ERROR_SUCCESS && type == REG_SZ ? buffer : L"";
+}
+
+AdapterRecord FindOrbitLanAdapter() {
     constexpr wchar_t class_key[] =
         LR"(SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318})";
+    const std::wstring owned_guid = RegistryString(LR"(SOFTWARE\OrbitLan)", L"AdapterGuid");
     HKEY root = nullptr;
     if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, class_key, 0, KEY_READ | KEY_WOW64_64KEY, &root) != ERROR_SUCCESS) {
-        return false;
+        return {};
     }
-    bool present = false;
-    for (DWORD index = 0; !present; ++index) {
+    AdapterRecord found;
+    for (DWORD index = 0; found.guid.empty(); ++index) {
         wchar_t name[256]{};
         DWORD name_size = static_cast<DWORD>(std::size(name));
         const LONG enumerated = RegEnumKeyExW(root, index, name, &name_size, nullptr, nullptr, nullptr, nullptr);
@@ -133,34 +154,49 @@ bool AdapterPresent() {
         wchar_t component[128]{};
         DWORD type = 0;
         DWORD bytes = sizeof(component);
-        if (RegQueryValueExW(child, L"ComponentId", nullptr, &type,
+        wchar_t guid[128]{};
+        DWORD guid_type = 0;
+        DWORD guid_bytes = sizeof(guid);
+        const bool is_tap =
+            RegQueryValueExW(child, L"ComponentId", nullptr, &type,
                              reinterpret_cast<BYTE*>(component), &bytes) == ERROR_SUCCESS &&
-            type == REG_SZ && _wcsicmp(component, L"tap0901") == 0) {
-            present = true;
+            type == REG_SZ && _wcsicmp(component, L"tap0901") == 0;
+        const bool has_guid =
+            RegQueryValueExW(child, L"NetCfgInstanceId", nullptr, &guid_type,
+                             reinterpret_cast<BYTE*>(guid), &guid_bytes) == ERROR_SUCCESS &&
+            guid_type == REG_SZ && guid[0] != 0;
+        if (is_tap && has_guid) {
+            const std::wstring connection =
+                LR"(SYSTEM\CurrentControlSet\Control\Network\{4D36E972-E325-11CE-BFC1-08002BE10318}\)" +
+                std::wstring(guid) + LR"(\Connection)";
+            HKEY connection_key = nullptr;
+            if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, connection.c_str(), 0,
+                              KEY_READ | KEY_WOW64_64KEY, &connection_key) == ERROR_SUCCESS) {
+                wchar_t connection_name[128]{};
+                DWORD name_type = 0;
+                DWORD name_bytes = sizeof(connection_name);
+                const bool has_name =
+                    RegQueryValueExW(connection_key, L"Name", nullptr, &name_type,
+                                     reinterpret_cast<BYTE*>(connection_name), &name_bytes) == ERROR_SUCCESS &&
+                    name_type == REG_SZ;
+                const bool owned = !owned_guid.empty() && _wcsicmp(guid, owned_guid.c_str()) == 0;
+                const bool legacy_named = owned_guid.empty() && has_name &&
+                                          _wcsicmp(connection_name, L"OrbitLan") == 0;
+                if (owned || legacy_named) found = {guid, has_name ? connection_name : L""};
+                RegCloseKey(connection_key);
+            }
         }
         RegCloseKey(child);
     }
     RegCloseKey(root);
-    return present;
+    return found;
 }
 
-bool EnsureAdapter(std::string& error) {
-    if (AdapterPresent()) return true;
-    const fs::path directory = ExecutableDirectory();
-    const fs::path driver = directory / L"driver";
-    const fs::path devcon = driver / L"devcon.exe";
-    const fs::path inf = driver / L"OemVista.inf";
-    if (!FileExists(devcon) || !FileExists(inf)) {
-        error = "TAP driver payload is missing";
-        return false;
-    }
-    DWORD exit_code = 1;
-    if (!RunProcessAndWait(devcon, {L"install", inf.wstring(), L"tap0901"}, driver, 60000,
-                           &exit_code) || !AdapterPresent()) {
-        error = "TAP adapter installation failed (devcon exit " + std::to_string(exit_code) + ")";
-        return false;
-    }
-    return true;
+bool EnsureAdapter(AdapterRecord& adapter, std::string& error) {
+    adapter = FindOrbitLanAdapter();
+    if (!adapter.guid.empty()) return true;
+    error = "the OrbitLan TAP adapter is missing; reinstall OrbitLan to repair it";
+    return false;
 }
 
 void StopEngineLocked() {
@@ -219,12 +255,13 @@ bool StartEngine(std::string_view name, std::string_view code, std::string_view 
         error = "relay mode must be off, auto, or on";
         return false;
     }
-    if (!EnsureAdapter(error)) return false;
+    AdapterRecord adapter;
+    if (!EnsureAdapter(adapter, error)) return false;
 
     const fs::path directory = ExecutableDirectory();
-    const fs::path engine = directory / L"orbitlan-engine.exe";
+    const fs::path engine = directory / L"OrbitLan.NetworkEngine.exe";
     if (!FileExists(engine)) {
-        error = "orbitlan-engine.exe is missing from the installation";
+        error = "OrbitLan's network engine is missing from the installation";
         return false;
     }
     g_api_token = RandomToken();
@@ -238,7 +275,7 @@ bool StartEngine(std::string_view name, std::string_view code, std::string_view 
         L"-code", Utf8ToWide(code), L"-name", Utf8ToWide(name), L"-server", Utf8ToWide(server),
         L"-relay", Utf8ToWide(relay), L"-datapath", L"tap", L"-api",
         L"127.0.0.1:" + std::to_wstring(kEngineApiPort),
-        L"-control-token", Utf8ToWide(g_api_token),
+        L"-control-token", Utf8ToWide(g_api_token), L"-adapter", adapter.guid,
     };
     for (const auto& arg : args) command += L" " + QuoteArgument(arg);
     std::vector<wchar_t> mutable_command(command.begin(), command.end());
@@ -326,10 +363,12 @@ std::string HandleCommand(std::string_view request) {
         if (fields.size() != 2 || (fields[1] != "0" && fields[1] != "1")) {
             return "ERR\tinvalid PRIORITY request";
         }
+        const AdapterRecord adapter = FindOrbitLanAdapter();
+        if (adapter.connection_name.empty()) return "ERR\tOrbitLan adapter is unavailable";
         const std::wstring metric = fields[1] == "1" ? L"1" : L"automatic";
         DWORD code = 1;
         const bool ok = RunProcessAndWait(L"netsh.exe",
-                                          {L"interface", L"ipv4", L"set", L"interface", L"OrbitLan",
+                                          {L"interface", L"ipv4", L"set", L"interface", adapter.connection_name,
                                            L"metric=" + metric},
                                           {}, 15000, &code);
         return ok ? "OK" : "ERR\tcould not update adapter priority";

@@ -64,14 +64,17 @@ func findAdapterGUID(wantName string) (string, error) {
 		if wantName == "" {
 			return guid, nil
 		}
+		if strings.EqualFold(guid, wantName) {
+			return guid, nil
+		}
 		if strings.EqualFold(connectionName(guid), wantName) {
 			return guid, nil
 		}
 	}
-	if firstTap != "" {
-		return firstTap, nil // fall back to the only/first TAP adapter
+	if wantName == "" && firstTap != "" {
+		return firstTap, nil
 	}
-	return "", fmt.Errorf("no tap-windows6 (%s) adapter found — is the driver installed and an adapter created?", tapComponentID)
+	return "", fmt.Errorf("no OrbitLan tap-windows6 (%s) adapter found — reinstall OrbitLan to repair it", tapComponentID)
 }
 
 func connectionName(guid string) string {

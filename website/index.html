@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OrbitLan — Play LAN games anywhere</title>
 <meta name="description" content="A free, peer-to-peer virtual LAN for gaming with friends across cities and ISPs. Create a network, share a code, and your LAN games just work again.">
-<link rel="icon" type="image/png" href="assets/orbitlan-logo.png">
+<link rel="icon" type="image/webp" href="assets/earthspin-transparent.webp">
 
 <!-- The support URL must be replaced after its Patreon/Lemon Squeezy page is created. -->
 
@@ -15,21 +15,21 @@
 
   :root{--night:#0b1045;--ink:#15172f;--muted:#5c627c;--paper:#f7f6fb;--white:#fff;--blue:#4e7fea;--violet:#7868dc;--coral:#ef7b86;--line:#dadbe8}
   *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.65;background:var(--paper);overflow-x:hidden}a{text-decoration:none;color:inherit}.wrap{width:min(1120px,calc(100% - 48px));margin:0 auto}
-  .site-header{position:absolute;inset:0 0 auto;z-index:10}.nav{height:78px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;flex-direction:column;gap:1px;color:var(--white);line-height:1}.brand-name{display:flex;align-items:center;font-family:"Segoe UI Variable Display","Segoe UI",Inter,ui-sans-serif,sans-serif;font-size:25px;font-weight:800;letter-spacing:-1px}.brand-orbit{display:block;width:44px;height:44px;margin-right:-4px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 7px rgba(0,0,24,.45))}.brand-tag{margin-left:40px;font-size:10px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:#bfc3e8}.nav-links{display:flex;align-items:center;gap:30px}.nav-links a{color:#e9eaff;font-size:14px;font-weight:650}.nav-links a:hover{color:var(--white)}.nav-links .nav-cta{padding:9px 16px;border:1px solid rgba(255,255,255,.5);border-radius:7px}
+  .site-header{position:absolute;inset:0 0 auto;z-index:10}.nav{height:78px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;flex-direction:column;gap:1px;color:var(--white);line-height:1}.brand-name{display:flex;align-items:center;font-family:"Segoe UI Variable Display","Segoe UI",Inter,ui-sans-serif,sans-serif;font-size:25px;font-weight:800;letter-spacing:-1px}.brand-orbit{display:block;width:38px;height:38px;margin-right:-2px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 7px rgba(0,0,24,.45))}.brand-tag{margin-left:36px;font-size:10px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:#bfc3e8}.nav-links{display:flex;align-items:center;gap:30px}.nav-links a{color:#e9eaff;font-size:14px;font-weight:650}.nav-links a:hover{color:var(--white)}.nav-links .nav-cta{padding:9px 16px;border:1px solid rgba(255,255,255,.5);border-radius:7px}
   .hero{position:relative;isolation:isolate;min-height:760px;height:100svh;max-height:940px;color:var(--white);background:linear-gradient(180deg,#090e43 0%,#111755 52%,#24245f 78%,#40316b 100%);display:flex;align-items:center;overflow:hidden}.sky{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);align-items:center;gap:54px;padding-top:40px}.eyebrow{margin:0 0 22px;font-family:'PressStart',monospace;font-size:10px;line-height:1.6;color:#c9c7ff;text-transform:uppercase;letter-spacing:.08em}.hero h1{max-width:720px;margin:0;font-size:clamp(50px,6.8vw,92px);line-height:.98;letter-spacing:-.065em}.hero-copy{max-width:600px;margin:26px 0 30px;font-size:clamp(18px,2vw,22px);line-height:1.55;color:#d8daf5}.actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:8px;background:var(--white);color:#181a42;font-size:14px;font-weight:750;transition:transform .15s ease,background .15s ease}.button:hover{transform:translateY(-2px);background:#eeeefe}.button.secondary{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.45)}.button.secondary:hover{background:rgba(255,255,255,.1)}.micro{margin:18px 0 0;color:#b9bce2;font-size:14px}
-  .planet{position:relative;display:flex;justify-content:center;align-items:center;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img{position:relative;z-index:1;display:block;width:min(158%,760px);max-width:none;height:auto;image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
+  .planet{position:relative;display:flex;justify-content:center;align-items:center;animation:planet-float 6.8s ease-in-out infinite;will-change:transform}.planet img,.network-mesh{width:min(184%,860px);max-width:none;height:auto}.planet img{position:relative;z-index:1;display:block;image-rendering:pixelated;filter:drop-shadow(0 30px 45px rgba(0,0,30,.35))}.network-mesh{position:absolute;inset:50% auto auto 50%;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none}.network-mesh.back{z-index:0}.network-mesh.front{z-index:2}@keyframes planet-float{0%,100%{transform:translate3d(0,10px,0)}50%{transform:translate3d(0,-18px,0)}}
   .how{padding:86px 0 76px}.intro{display:grid;grid-template-columns:.72fr 1.28fr;gap:70px;align-items:start;margin-bottom:62px}.label{margin:8px 0 0;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}.intro h2{margin:0;font-size:clamp(34px,4vw,58px);line-height:1.08;letter-spacing:-.045em}.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.step{padding:32px 34px 0 0}.step+.step{padding-left:34px;border-left:1px solid var(--line)}.step span{color:var(--coral);font-size:13px;font-weight:800}.step h3{margin:8px 0 8px;font-size:20px;letter-spacing:-.02em}.step p{margin:0;color:var(--muted);font-size:16px}
   .trust{padding:34px 0 70px}.trust-row{display:flex;justify-content:space-between;gap:30px;padding-top:30px;border-top:1px solid var(--line)}.trust-item{max-width:300px}.trust-item strong{display:block;margin-bottom:4px;font-size:15px}.trust-item span{color:var(--muted);font-size:14px}
   .support{background:#252557;color:var(--white);padding:62px 0}.support-row{display:flex;align-items:center;justify-content:space-between;gap:44px}.support h2{margin:0 0 8px;font-size:clamp(30px,3.5vw,48px);letter-spacing:-.04em}.support p{max-width:660px;margin:0;color:#c9cbe7}.support .button{flex:0 0 auto}
   footer{background:#1a1a42;color:#afb2d1;padding:28px 0;font-size:13px}.footer-row{display:flex;align-items:center;justify-content:space-between;gap:20px}.footer-links{display:flex;gap:22px}.footer-links a:hover{color:#fff}
-  @media(max-width:780px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:22px}.brand-orbit{width:40px;height:40px;margin-right:-4px}.brand-tag{margin-left:36px;font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:116px 0 78px}.hero-grid{grid-template-columns:1fr;gap:44px;padding:0;text-align:center}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1}.planet img{width:min(125vw,585px)}.intro{grid-template-columns:1fr;gap:14px;margin-bottom:42px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
+  @media(max-width:780px){.wrap{width:min(100% - 32px,1120px)}.nav{height:68px}.brand-name{font-size:22px}.brand-orbit{width:34px;height:34px;margin-right:-1px}.brand-tag{margin-left:32px;font-size:9px}.nav-links a:not(.nav-cta){display:none}.hero{height:auto;min-height:0;padding:116px 0 78px}.hero-grid{grid-template-columns:1fr;gap:44px;padding:0;text-align:center}.hero-copy{margin-left:auto;margin-right:auto}.actions{justify-content:center}.planet{grid-row:1}.planet img,.network-mesh{width:min(144vw,680px)}.intro{grid-template-columns:1fr;gap:14px;margin-bottom:42px}.steps{grid-template-columns:1fr}.step{padding:26px 0}.step+.step{padding-left:0;border-left:0;border-top:1px solid var(--line)}.trust-row,.support-row{align-items:flex-start;flex-direction:column}.footer-row{align-items:flex-start;flex-direction:column}}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}.planet{animation:none}}
 </style>
 </head>
 <body>
 <header class="site-header">
   <nav class="wrap nav" aria-label="Main navigation">
-    <a class="brand" href="#top"><span class="brand-name"><img class="brand-orbit" src="assets/earth-clouds.gif" width="32" height="32" alt=""><span>rbitLan</span></span><span class="brand-tag">Virtual LAN for games</span></a>
+    <a class="brand" href="#top"><span class="brand-name"><img class="brand-orbit" src="assets/earthspin-transparent.webp" width="32" height="32" alt=""><span>rbitLan</span></span><span class="brand-tag">Virtual LAN for games</span></a>
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">Source</a>
@@ -47,13 +47,15 @@
         <h1>LAN games.<br>Any distance.</h1>
         <p class="hero-copy">Create a room, share one code, and play with friends as if everyone were on the same router.</p>
         <div class="actions">
-          <a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest" target="_blank" rel="noopener">Download for Windows</a>
+          <a class="button" href="https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe">Download for Windows</a>
           <a class="button secondary" href="https://github.com/furqan-ahm/orbitlan" target="_blank" rel="noopener">View source</a>
         </div>
         <p class="micro">No accounts. No paid tier. Open source.</p>
       </div>
       <div class="planet">
+        <canvas class="network-mesh back" id="mesh-back" aria-hidden="true"></canvas>
         <img src="assets/earth-clouds.gif" width="286" height="286" alt="A pixel-art Earth rotating beneath bands of cloud">
+        <canvas class="network-mesh front" id="mesh-front" aria-hidden="true"></canvas>
       </div>
     </div>
   </section>
@@ -176,6 +178,121 @@
   } else {
     setActive(true);
   }
+})();
+
+(() => {
+  const planet = document.querySelector('.planet');
+  const back = document.getElementById('mesh-back');
+  const front = document.getElementById('mesh-front');
+  const backContext = back.getContext('2d', { alpha: true });
+  const frontContext = front.getContext('2d', { alpha: true });
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const latitudes = [-.64, .08, .62, -.22, .38, -.48, .72, .18];
+  const links = [[0,1],[1,2],[2,0],[2,3],[3,0],[3,4],[4,1],
+                 [4,5],[5,2],[5,6],[6,3],[6,7],[7,4],[7,0]];
+  let size = 1, ratio = 1, active = true, frameId = 0, last = 0;
+
+  function resize() {
+    size = Math.max(1, Math.round(back.getBoundingClientRect().width));
+    ratio = Math.min(devicePixelRatio || 1, 1.5);
+    for (const canvas of [back, front]) {
+      canvas.width = Math.round(size * ratio);
+      canvas.height = Math.round(size * ratio);
+    }
+    draw(reduceMotion ? 2.4 : performance.now() / 1000);
+  }
+
+  function pointsAt(time) {
+    const points = [];
+    const center = size / 2;
+    for (let index = 0; index < latitudes.length; index++) {
+      const longitude = index * (Math.PI * 2 / latitudes.length) +
+                        (index % 2) * .34 + time * (.19 + (index % 3) * .012);
+      const latitude = latitudes[index] + Math.sin(time * .31 + index * .8) * .06;
+      const latitudeWidth = Math.cos(latitude);
+      const depth = Math.cos(longitude) * latitudeWidth;
+      const radius = size * (.414 + (index % 3) * .012);
+      points.push({
+        x: center + Math.sin(longitude) * latitudeWidth * radius,
+        y: center - Math.sin(latitude) * size * .36 + depth * size * .035,
+        depth,
+        radius: Math.max(3.5, size * (.0064 + (depth + 1) * .0018))
+      });
+    }
+    return points;
+  }
+
+  function drawLayer(context, points, isFront, time) {
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, size, size);
+    context.lineCap = 'round';
+    context.setLineDash([Math.max(3, size * .006), Math.max(4, size * .008)]);
+    context.lineDashOffset = -(time * 10);
+    for (let index = 0; index < links.length; index++) {
+      const [a, b] = links[index];
+      const depth = (points[a].depth + points[b].depth) / 2;
+      if ((depth >= 0) !== isFront) continue;
+      const alpha = isFront ? .46 + Math.max(0, depth) * .32 : .12 + (depth + 1) * .08;
+      context.strokeStyle = `rgba(76,255,159,${alpha})`;
+      context.lineWidth = Math.max(1, size * .0025);
+      context.beginPath();
+      context.moveTo(points[a].x, points[a].y);
+      context.lineTo(points[b].x, points[b].y);
+      context.stroke();
+    }
+    context.setLineDash([]);
+    for (const point of points) {
+      if ((point.depth >= 0) !== isFront) continue;
+      const alpha = isFront ? .82 + Math.max(0, point.depth) * .18 : .28 + (point.depth + 1) * .14;
+      context.shadowColor = `rgba(76,255,159,${isFront ? .65 : .18})`;
+      context.shadowBlur = isFront ? Math.max(5, size * .012) : 2;
+      context.fillStyle = `rgba(76,255,159,${alpha})`;
+      context.strokeStyle = `rgba(7,92,60,${alpha})`;
+      context.lineWidth = Math.max(1, size * .0022);
+      context.beginPath();
+      context.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+      context.fill();
+      context.stroke();
+    }
+    context.shadowBlur = 0;
+  }
+
+  function draw(time) {
+    const points = pointsAt(time);
+    drawLayer(backContext, points, false, time);
+    drawLayer(frontContext, points, true, time);
+  }
+
+  function frame(now) {
+    if (now - last >= 34) {
+      draw(now / 1000);
+      last = now;
+    }
+    frameId = requestAnimationFrame(frame);
+  }
+
+  function updateAnimation() {
+    const shouldRun = active && !document.hidden && !reduceMotion;
+    if (shouldRun && !frameId) {
+      last = performance.now();
+      frameId = requestAnimationFrame(frame);
+    } else if (!shouldRun && frameId) {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+  }
+
+  document.addEventListener('visibilitychange', updateAnimation);
+  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(back);
+  else addEventListener('resize', resize, { passive: true });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      active = entry.isIntersecting;
+      updateAnimation();
+    }, { threshold: 0 }).observe(planet);
+  }
+  resize();
+  updateAnimation();
 })();
 </script>
 </body>

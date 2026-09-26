@@ -37,6 +37,9 @@ jobs:
           dotnet-version: 10.0.x
       - name: Test and build engine
         working-directory: client/engine
+        env:
+          GOOS: windows
+          GOARCH: amd64
         run: |
           go test ./...
           go build -trimpath -o ../ui/payload/orbitlan-engine.exe .
@@ -47,15 +50,17 @@ jobs:
           cmake -S client/native -B build/native -A x64
           cmake --build build/native --config Release --parallel
           ctest --test-dir build/native -C Release --output-on-failure
-      - name: Stage native preview
+      - name: Stage native package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path build/native-artifact/driver -Force | Out-Null
-          New-Item -ItemType Directory -Path build/native-artifact/assets -Force | Out-Null
-          Copy-Item build/native/bin/OrbitLan.exe,build/native/bin/OrbitLanService.exe,build/native/bin/OrbitLanSetup.exe build/native-artifact/
-          Copy-Item client/ui/payload/orbitlan-engine.exe build/native-artifact/
-          Copy-Item client/ui/payload/driver/* build/native-artifact/driver/
-          Copy-Item client/ui/assets/earth-clouds.gif build/native-artifact/assets/
+          New-Item -ItemType Directory -Path build/native-artifact/OrbitLan-Portable/support/assets -Force | Out-Null
+          New-Item -ItemType Directory -Path build/native-artifact/OrbitLan-Portable/support/driver -Force | Out-Null
+          Copy-Item build/native/bin/OrbitLan-Installer.exe build/native-artifact/
+          Copy-Item build/native/bin/OrbitLan.exe build/native-artifact/OrbitLan-Portable/
+          Copy-Item build/native/bin/OrbitLan.NetworkService.exe,build/native/bin/OrbitLan.Setup.exe build/native-artifact/OrbitLan-Portable/support/
+          Copy-Item client/ui/payload/orbitlan-engine.exe build/native-artifact/OrbitLan-Portable/support/OrbitLan.NetworkEngine.exe
+          Copy-Item client/ui/payload/driver/* build/native-artifact/OrbitLan-Portable/support/driver/
+          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png build/native-artifact/OrbitLan-Portable/support/assets/
       - uses: actions/upload-artifact@v4
         with:
           name: OrbitLan-Native-${{ github.sha }}

@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+
+      - name: Test and build network engine
+        shell: pwsh
+        run: |
+          $engineOutput = Join-Path $env:GITHUB_WORKSPACE "build/release-engine/OrbitLan.NetworkEngine.exe"
+          New-Item -ItemType Directory -Path (Split-Path $engineOutput) -Force | Out-Null
+          Push-Location client/engine
+          try {
+            go test ./...
+            $env:GOOS = "windows"
+            $env:GOARCH = "amd64"
+            go build -trimpath -ldflags "-s -w" -o $engineOutput .
+          } finally {
+            Pop-Location
+          }
+
+      - name: Build and test native client
+        shell: pwsh
+        run: |
+          $engineOutput = Join-Path $env:GITHUB_WORKSPACE "build/release-engine/OrbitLan.NetworkEngine.exe"
+          cmake -S client/native -B build/native -A x64 "-DORBITLAN_ENGINE_PAYLOAD=$engineOutput"
+          cmake --build build/native --config Release --parallel
+          ctest --test-dir build/native -C Release --output-on-failure
+
+      - name: Package release files
+        shell: pwsh
+        run: |
+          $release = Join-Path $env:GITHUB_WORKSPACE "build/release"
+          $portable = Join-Path $release "OrbitLan-Portable"
+          $support = Join-Path $portable "support"
+          New-Item -ItemType Directory -Path (Join-Path $support "assets") -Force | Out-Null
+          New-Item -ItemType Directory -Path (Join-Path $support "driver") -Force | Out-Null
+
+          Copy-Item build/native/bin/OrbitLan-Installer.exe $release
+          Copy-Item build/native/bin/OrbitLan.exe $portable
+          Copy-Item build/native/bin/OrbitLan.NetworkService.exe,build/native/bin/OrbitLan.Setup.exe $support
+          Copy-Item build/release-engine/OrbitLan.NetworkEngine.exe (Join-Path $support "OrbitLan.NetworkEngine.exe")
+          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png (Join-Path $support "assets")
+          Copy-Item client/ui/payload/driver/* (Join-Path $support "driver")
+
+          Compress-Archive -Path $portable -DestinationPath (Join-Path $release "OrbitLan-Portable.zip") -CompressionLevel Optimal
+          foreach ($file in @("OrbitLan-Installer.exe", "OrbitLan-Portable.zip")) {
+            $hash = (Get-FileHash (Join-Path $release $file) -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $file" | Set-Content (Join-Path $release "$file.sha256") -Encoding ascii
+          }
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $notes = @"
+          OrbitLan $tag is the first native Windows public release.
+
+          - Use **OrbitLan-Installer.exe** for the normal one-click installation.
+          - Use **OrbitLan-Portable.zip** if you prefer an extracted portable UI with first-run network setup.
+          - SHA-256 checksum files are included for both downloads.
+
+          The binaries are currently unsigned, so Windows SmartScreen may show an unknown-publisher warning.
+          "@
+          $notes | Set-Content build/release/notes.md -Encoding utf8
+          gh release create $tag `
+            build/release/OrbitLan-Installer.exe `
+            build/release/OrbitLan-Installer.exe.sha256 `
+            build/release/OrbitLan-Portable.zip `
+            build/release/OrbitLan-Portable.zip.sha256 `
+            --repo $env:GITHUB_REPOSITORY `
+            --verify-tag `
+            --title "OrbitLan $tag" `
+            --notes-file build/release/notes.md

@@ -48,10 +48,12 @@ is peer-to-peer.
 
 ## Download & install (Windows)
 
-Grab the latest release from the [Releases](../../releases) page, unzip, and run
-`OrbitLanSetup.exe` once. Setup installs the signed virtual network adapter and OrbitLan's
-small privileged network service with one Windows approval. After that, open OrbitLan from
-the Start menu normally — the UI and notification-area app never request elevation.
+Download the latest [OrbitLan installer](https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Installer.exe)
+and run it once. Setup installs the virtual network adapter and OrbitLan's small privileged
+network service with one Windows approval. After that, open OrbitLan from the Start menu
+normally — the UI and notification-area app never request elevation. A
+[portable package](https://github.com/furqan-ahm/orbitlan/releases/latest/download/OrbitLan-Portable.zip)
+is available too.
 
 ## Relay & privacy
 
