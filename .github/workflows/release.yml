@@ -37,7 +37,9 @@ jobs:
         shell: pwsh
         run: |
           $engineOutput = Join-Path $env:GITHUB_WORKSPACE "build/release-engine/OrbitLan.NetworkEngine.exe"
-          cmake -S client/native -B build/native -A x64 "-DORBITLAN_ENGINE_PAYLOAD=$engineOutput"
+          cmake -S client/native -B build/native -A x64 `
+            "-DORBITLAN_ENGINE_PAYLOAD=$engineOutput" `
+            "-DORBITLAN_SUPPORTER_EDITION=OFF"
           cmake --build build/native --config Release --parallel
           ctest --test-dir build/native -C Release --output-on-failure
 
@@ -54,7 +56,7 @@ jobs:
           Copy-Item build/native/bin/OrbitLan.exe $portable
           Copy-Item build/native/bin/OrbitLan.NetworkService.exe,build/native/bin/OrbitLan.Setup.exe $support
           Copy-Item build/release-engine/OrbitLan.NetworkEngine.exe (Join-Path $support "OrbitLan.NetworkEngine.exe")
-          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png (Join-Path $support "assets")
+          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png,client/ui/assets/moon-supporter.png (Join-Path $support "assets")
           Copy-Item client/ui/payload/driver/* (Join-Path $support "driver")
 
           Compress-Archive -Path $portable -DestinationPath (Join-Path $release "OrbitLan-Portable.zip") -CompressionLevel Optimal
@@ -70,7 +72,7 @@ jobs:
         run: |
           $tag = $env:GITHUB_REF_NAME
           $notes = @"
-          OrbitLan $tag is the first native Windows public release.
+          OrbitLan Community Edition $tag is the public Windows release.
 
           - Use **OrbitLan-Installer.exe** for the normal one-click installation.
           - Use **OrbitLan-Portable.zip** if you prefer an extracted portable UI with first-run network setup.
@@ -86,5 +88,5 @@ jobs:
             build/release/OrbitLan-Portable.zip.sha256 `
             --repo $env:GITHUB_REPOSITORY `
             --verify-tag `
-            --title "OrbitLan $tag" `
+            --title "OrbitLan Community Edition $tag" `
             --notes-file build/release/notes.md

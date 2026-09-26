@@ -25,6 +25,7 @@ var (
 
 // PeerStatus is what the control API reports for each peer.
 type PeerStatus struct {
+	ID    string  `json:"id"`
 	Name  string  `json:"name"`
 	IP    string  `json:"ip"`
 	State string  `json:"state"`
@@ -34,6 +35,7 @@ type PeerStatus struct {
 func main() {
 	server := flag.String("server", "", "coordinator base URL (required)")
 	relayMode := flag.String("relay", "auto", "relay mode: off | auto | on")
+	edition := flag.String("edition", "community", "client edition: community | supporter")
 	code := flag.String("code", "", "network join code")
 	name := flag.String("name", hostname(), "your display name")
 	dpKind := flag.String("datapath", "tap", "datapath: tap | loopback")
@@ -60,11 +62,16 @@ func main() {
 		fmt.Println("invalid -relay value; use off, auto, or on")
 		os.Exit(1)
 	}
+	if *edition != "community" && *edition != "supporter" {
+		fmt.Println("invalid -edition value; use community or supporter")
+		os.Exit(1)
+	}
 
 	peerID := *idFlag
 	if peerID == "" {
 		peerID = loadOrCreateID()
 	}
+	memberToken := loadOrCreateMemberToken()
 
 	// datapath
 	var dp Datapath
@@ -88,7 +95,7 @@ func main() {
 		log.Fatalf("unknown datapath %q", *dpKind)
 	}
 
-	coord := newCoord(*server, *code, peerID)
+	coord := newCoord(*server, *code, peerID, *edition, memberToken)
 	mesh := newMesh(peerID, *name, *code, *relayMode, dp, coord)
 
 	// control API
@@ -105,6 +112,7 @@ func main() {
 	}
 	api.myIP = jr.YourIP
 	mesh.myIP = jr.YourIP
+	mesh.setHost(jr.IsHost, jr.HostPeerID)
 	if *relayMode != "off" && jr.Turn != nil {
 		mesh.turnURL, mesh.turnUser, mesh.turnPass = jr.Turn.URL, jr.Turn.Username, jr.Turn.Credential
 	}
@@ -131,6 +139,8 @@ func main() {
 	select {
 	case <-sig:
 	case <-api.shutdown:
+	case err := <-mesh.removed:
+		log.Printf("room membership ended: %v", err)
 	}
 	log.Println("shutting down…")
 	mesh.Close()
@@ -180,6 +190,22 @@ func loadOrCreateID() string {
 	id := hex.EncodeToString(buf[:])
 	os.WriteFile(p, []byte(id), 0o644)
 	return id
+}
+
+func loadOrCreateMemberToken() string {
+	p := filepath.Join(filepath.Dir(idFilePath()), "membertoken")
+	if b, err := os.ReadFile(p); err == nil && len(b) == 64 {
+		return string(b)
+	}
+	var buf [32]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		log.Fatalf("could not create member identity: %v", err)
+	}
+	token := hex.EncodeToString(buf[:])
+	if err := os.WriteFile(p, []byte(token), 0o600); err != nil {
+		log.Fatalf("could not save member identity: %v", err)
+	}
+	return token
 }
 
 // hardware address helper reused by tests

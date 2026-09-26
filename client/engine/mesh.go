@@ -44,8 +44,11 @@ type Mesh struct {
 	macTable sync.Map // string(MAC) -> peerID   (learned + announced)
 	ipToMac  sync.Map // string(4-byte IP) -> net.HardwareAddr  (announced, for local ARP)
 	version  int
+	isHost   bool
+	hostID   string
 	onChange func()
 	closed   chan struct{}
+	removed  chan error
 }
 
 func newMesh(id, name, code, relayMode string, dp Datapath, coord *coordClient) *Mesh {
@@ -54,6 +57,7 @@ func newMesh(id, name, code, relayMode string, dp Datapath, coord *coordClient) 
 		stunURL: "stun:stun.cloudflare.com:3478",
 		peers:   map[string]*Peer{},
 		closed:  make(chan struct{}),
+		removed: make(chan error, 1),
 	}
 }
 
@@ -70,6 +74,7 @@ func (m *Mesh) Run(name string) error {
 	}
 	log.Printf("joined %s as %s (%s); %d member(s)", jr.NetID, name, jr.YourIP, len(jr.Members))
 	m.version = jr.Version
+	m.setHost(jr.IsHost, jr.HostPeerID)
 	m.reconcile(jr.Members)
 
 	go m.datapathLoop()
@@ -152,6 +157,34 @@ func (m *Mesh) reconcile(members []MemberInfo) {
 	}
 }
 
+func (m *Mesh) setHost(isHost bool, hostID string) {
+	m.mu.Lock()
+	changed := m.isHost != isHost || m.hostID != hostID
+	m.isHost = isHost
+	m.hostID = hostID
+	m.mu.Unlock()
+	if changed {
+		m.notify()
+	}
+}
+
+func (m *Mesh) hostStatus() (bool, string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.isHost, m.hostID
+}
+
+func (m *Mesh) kick(peerID string) error {
+	isHost, _ := m.hostStatus()
+	if !isHost {
+		return errors.New("only the room host can remove nodes")
+	}
+	if peerID == "" || peerID == m.myID {
+		return errors.New("invalid node")
+	}
+	return m.coord.kick(peerID)
+}
+
 // ---- coordinator poll loop ----
 
 func (m *Mesh) pollLoop() {
@@ -163,9 +196,18 @@ func (m *Mesh) pollLoop() {
 		}
 		pr, err := m.coord.poll(m.version)
 		if err != nil {
+			var httpErr *coordHTTPError
+			if errors.As(err, &httpErr) && (httpErr.status == 403 || httpErr.status == 410) {
+				select {
+				case m.removed <- err:
+				default:
+				}
+				return
+			}
 			time.Sleep(2 * time.Second)
 			continue
 		}
+		m.setHost(pr.IsHost, pr.HostPeerID)
 		if len(pr.Members) > 0 || pr.Version != m.version {
 			m.version = pr.Version
 			m.reconcile(pr.Members)
@@ -293,7 +335,7 @@ func (m *Mesh) snapshotPeers() []PeerStatus {
 	out := make([]PeerStatus, 0, len(m.peers))
 	for _, p := range m.peers {
 		out = append(out, PeerStatus{
-			Name: p.name, IP: p.ip, State: string(p.state),
+			ID: p.id, Name: p.name, IP: p.ip, State: string(p.state),
 			RTTms: float64(p.rtt.Microseconds()) / 1000.0,
 		})
 	}

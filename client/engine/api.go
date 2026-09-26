@@ -24,6 +24,7 @@ func (a *controlAPI) serve(addr string) {
 	mux.HandleFunc("/status", a.status)
 	mux.HandleFunc("/health", a.health)
 	mux.HandleFunc("/shutdown", a.stop)
+	mux.HandleFunc("/kick", a.kick)
 	http.ListenAndServe(addr, mux)
 }
 
@@ -61,12 +62,14 @@ func (a *controlAPI) stop(w http.ResponseWriter, r *http.Request) {
 }
 
 type statusResp struct {
-	MyID    string       `json:"myID"`
-	MyName  string       `json:"myName"`
-	MyIP    string       `json:"myIP"`
-	Code    string       `json:"code"`
-	Peers   []PeerStatus `json:"peers"`
-	Summary string       `json:"summary"`
+	MyID       string       `json:"myID"`
+	MyName     string       `json:"myName"`
+	MyIP       string       `json:"myIP"`
+	Code       string       `json:"code"`
+	Peers      []PeerStatus `json:"peers"`
+	Summary    string       `json:"summary"`
+	IsHost     bool         `json:"isHost"`
+	HostPeerID string       `json:"hostPeerID"`
 }
 
 func (a *controlAPI) status(w http.ResponseWriter, r *http.Request) {
@@ -85,12 +88,46 @@ func (a *controlAPI) status(w http.ResponseWriter, r *http.Request) {
 			connecting++
 		}
 	}
+	isHost, hostPeerID := a.mesh.hostStatus()
 	resp := statusResp{
 		MyID: a.myID, MyName: a.myName, MyIP: a.myIP, Code: a.code, Peers: peers,
-		Summary: summarize(direct, relay, connecting),
+		Summary: summarize(direct, relay, connecting), IsHost: isHost, HostPeerID: hostPeerID,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+func validPeerID(value string) bool {
+	if len(value) < 1 || len(value) > 128 {
+		return false
+	}
+	for _, ch := range value {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') &&
+			(ch < '0' || ch > '9') && ch != '-' && ch != '_' {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *controlAPI) kick(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	peerID := r.URL.Query().Get("peerID")
+	if !validPeerID(peerID) {
+		http.Error(w, "invalid node", http.StatusBadRequest)
+		return
+	}
+	if err := a.mesh.kick(peerID); err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	w.Write([]byte("removed"))
 }
 
 func summarize(direct, relay, connecting int) string {

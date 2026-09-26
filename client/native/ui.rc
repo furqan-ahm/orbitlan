@@ -3,8 +3,8 @@
 IDI_ORBITLAN ICON "../ui/orbitlan.ico"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0
  FILEOS 0x40004L
@@ -14,13 +14,13 @@ BEGIN
   BEGIN
     BLOCK "040904b0"
     BEGIN
-      VALUE "CompanyName", "Furqan Ahmad\0"
+      VALUE "CompanyName", "Furqan Ahmed\0"
       VALUE "FileDescription", "OrbitLan native client\0"
-      VALUE "FileVersion", "2.0.0\0"
+      VALUE "FileVersion", "1.0.0\0"
       VALUE "InternalName", "OrbitLan\0"
       VALUE "OriginalFilename", "OrbitLan.exe\0"
       VALUE "ProductName", "OrbitLan\0"
-      VALUE "ProductVersion", "2.0.0\0"
+      VALUE "ProductVersion", "1.0.0\0"
     END
   END
   BLOCK "VarFileInfo"

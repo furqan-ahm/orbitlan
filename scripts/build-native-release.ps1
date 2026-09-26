@@ -1,22 +1,29 @@
 param(
     [string]$Configuration = "Release",
-    [string]$SigningThumbprint = ""
+    [string]$SigningThumbprint = "",
+    [ValidateSet("Community", "Supporter")]
+    [string]$Edition = "Community"
 )
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
 $engine = Join-Path $repo "client\engine"
 $native = Join-Path $repo "client\native"
-$build = Join-Path $repo "build\native-release"
+$editionSlug = $Edition.ToLowerInvariant()
+$supporter = $Edition -eq "Supporter"
+$build = Join-Path $repo "build\native-release-$editionSlug"
 $engineBuild = Join-Path $repo "build\native-release-engine"
 $enginePayload = Join-Path $engineBuild "OrbitLan.NetworkEngine.exe"
 $dist = Join-Path $repo "dist"
-$installer = Join-Path $dist "OrbitLan-Installer.exe"
-$checksum = Join-Path $dist "OrbitLan-Installer.exe.sha256"
-$portable = Join-Path $dist "OrbitLan-Portable"
+$packagePrefix = if ($supporter) { "OrbitLan-Supporter" } else { "OrbitLan" }
+$installerName = "$packagePrefix-Installer.exe"
+$portableName = "$packagePrefix-Portable.zip"
+$installer = Join-Path $dist $installerName
+$checksum = Join-Path $dist "$installerName.sha256"
+$portable = Join-Path $dist "$packagePrefix-Portable"
 $portableSupport = Join-Path $portable "support"
-$portableZip = Join-Path $dist "OrbitLan-Portable.zip"
-$portableChecksum = Join-Path $dist "OrbitLan-Portable.zip.sha256"
+$portableZip = Join-Path $dist $portableName
+$portableChecksum = Join-Path $dist "$portableName.sha256"
 
 if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
     throw "Go is required and was not found on PATH."
@@ -45,8 +52,12 @@ if ($engineHeader.Length -lt 2 -or $engineHeader[0] -ne 0x4d -or $engineHeader[1
 }
 
 if (Test-Path $build) { Remove-Item $build -Recurse -Force }
-cmake -S $native -B $build -A x64 "-DORBITLAN_ENGINE_PAYLOAD=$enginePayload"
-cmake --build $build --config $Configuration --target OrbitLan OrbitLanService OrbitLanPortableSetup --parallel
+$editionSwitch = if ($supporter) { "ON" } else { "OFF" }
+cmake -S $native -B $build -A x64 "-DORBITLAN_ENGINE_PAYLOAD=$enginePayload" `
+    "-DORBITLAN_SUPPORTER_EDITION=$editionSwitch"
+cmake --build $build --config $Configuration `
+    --target OrbitLan OrbitLanService OrbitLanPortableSetup OrbitLanNativeTests --parallel
+ctest --test-dir $build -C $Configuration --output-on-failure
 
 $bin = Join-Path $build "bin"
 
@@ -74,7 +85,7 @@ if ($SigningThumbprint) {
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
 Copy-Item (Join-Path $bin "OrbitLan-Installer.exe") $installer -Force
 $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-"$hash  OrbitLan-Installer.exe" | Set-Content $checksum -Encoding ascii
+"$hash  $installerName" | Set-Content $checksum -Encoding ascii
 
 if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
 if (Test-Path $portableZip) { Remove-Item $portableZip -Force }
@@ -86,10 +97,11 @@ Copy-Item (Join-Path $bin "OrbitLan.Setup.exe") $portableSupport
 Copy-Item $enginePayload (Join-Path $portableSupport "OrbitLan.NetworkEngine.exe")
 Copy-Item (Join-Path $repo "client\ui\assets\earth-clouds.gif") (Join-Path $portableSupport "assets")
 Copy-Item (Join-Path $repo "client\ui\assets\earth-header-sheet.png") (Join-Path $portableSupport "assets")
+Copy-Item (Join-Path $repo "client\ui\assets\moon-supporter.png") (Join-Path $portableSupport "assets")
 Copy-Item (Join-Path $repo "client\ui\payload\driver\*") (Join-Path $portableSupport "driver") -Force
 Compress-Archive -Path $portable -DestinationPath $portableZip -CompressionLevel Optimal
 $portableHash = (Get-FileHash $portableZip -Algorithm SHA256).Hash.ToLowerInvariant()
-"$portableHash  OrbitLan-Portable.zip" | Set-Content $portableChecksum -Encoding ascii
+"$portableHash  $portableName" | Set-Content $portableChecksum -Encoding ascii
 
-Write-Host "Built $installer"
-Write-Host "Built $portableZip"
+Write-Host "Built $Edition edition: $installer"
+Write-Host "Built $Edition edition: $portableZip"

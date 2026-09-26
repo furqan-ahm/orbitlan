@@ -45,13 +45,14 @@ struct EmbeddedItem {
     fs::path destination;
 };
 
-const std::array<EmbeddedItem, 11>& EmbeddedPayload() {
-    static const std::array<EmbeddedItem, 11> payload = {{
+const std::array<EmbeddedItem, 12>& EmbeddedPayload() {
+    static const std::array<EmbeddedItem, 12> payload = {{
         {IDR_PAYLOAD_UI, L"OrbitLan.exe"},
         {IDR_PAYLOAD_SERVICE, L"OrbitLan.NetworkService.exe"},
         {IDR_PAYLOAD_ENGINE, L"OrbitLan.NetworkEngine.exe"},
         {IDR_PAYLOAD_EARTH, fs::path(L"assets") / L"earth-clouds.gif"},
         {IDR_PAYLOAD_HEADER_EARTH, fs::path(L"assets") / L"earth-header-sheet.png"},
+        {IDR_PAYLOAD_MOON, fs::path(L"assets") / L"moon-supporter.png"},
         {IDR_PAYLOAD_DEVCON, fs::path(L"driver") / L"devcon.exe"},
         {IDR_PAYLOAD_DRIVER_INF, fs::path(L"driver") / L"OemVista.inf"},
         {IDR_PAYLOAD_DRIVER_CAT, fs::path(L"driver") / L"tap0901.cat"},
@@ -215,7 +216,8 @@ bool CopyLoosePayload(const fs::path& root, const fs::path& destination,
     for (const auto& item : EmbeddedPayload()) {
         if (runtime_only && (item.resource_id == IDR_PAYLOAD_UI ||
                              item.resource_id == IDR_PAYLOAD_EARTH ||
-                             item.resource_id == IDR_PAYLOAD_HEADER_EARTH)) {
+                             item.resource_id == IDR_PAYLOAD_HEADER_EARTH ||
+                             item.resource_id == IDR_PAYLOAD_MOON)) {
             continue;
         }
         const fs::path source = LoosePayloadFile(root, item.destination);
@@ -618,7 +620,7 @@ void WriteUninstallRegistration(const fs::path& directory, bool portable) {
                        static_cast<DWORD>((value.size() + 1) * sizeof(wchar_t)));
     };
     set_string(L"DisplayName", portable ? L"OrbitLan Network Components" : L"OrbitLan");
-    set_string(L"DisplayVersion", L"2.0.0");
+    set_string(L"DisplayVersion", L"1.0.0");
     set_string(L"Publisher", L"Furqan Ahmad");
     set_string(L"InstallLocation", directory.wstring());
     set_string(L"DisplayIcon", display_icon);
@@ -725,6 +727,7 @@ bool Uninstall(std::wstring& error) {
         directory / L"OrbitLan.exe", directory / L"OrbitLan.NetworkService.exe",
         directory / L"OrbitLan.NetworkEngine.exe", directory / L"assets" / L"earth-clouds.gif",
         directory / L"assets" / L"earth-header-sheet.png",
+        directory / L"assets" / L"moon-supporter.png",
         directory / L"driver" / L"devcon.exe",
         directory / L"driver" / L"OemVista.inf", directory / L"driver" / L"tap0901.cat",
         directory / L"driver" / L"tap0901.sys", directory / L"driver" / L"LICENSE-GPL-2.0.txt",

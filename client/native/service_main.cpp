@@ -76,7 +76,7 @@ std::string RandomToken() {
 
 bool HttpControl(std::wstring_view method, std::wstring_view path, std::string& body) {
     body.clear();
-    HttpHandle session(WinHttpOpen(L"OrbitLanService/2.0", WINHTTP_ACCESS_TYPE_NO_PROXY,
+    HttpHandle session(WinHttpOpen(L"OrbitLanService/1.0", WINHTTP_ACCESS_TYPE_NO_PROXY,
                                    WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
     if (!session) return false;
     WinHttpSetTimeouts(session.get(), 1200, 1200, 1200, 1800);
@@ -99,7 +99,6 @@ bool HttpControl(std::wstring_view method, std::wstring_view path, std::string& 
     DWORD status_size = sizeof(status);
     WinHttpQueryHeaders(request.get(), WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
                         WINHTTP_HEADER_NAME_BY_INDEX, &status, &status_size, WINHTTP_NO_HEADER_INDEX);
-    if (status < 200 || status >= 300) return false;
     for (;;) {
         DWORD available = 0;
         if (!WinHttpQueryDataAvailable(request.get(), &available)) return false;
@@ -111,7 +110,7 @@ bool HttpControl(std::wstring_view method, std::wstring_view path, std::string& 
         if (!WinHttpReadData(request.get(), body.data() + offset, available, &read)) return false;
         body.resize(offset + read);
     }
-    return true;
+    return status >= 200 && status < 300;
 }
 
 struct AdapterRecord {
@@ -231,7 +230,7 @@ std::string EngineLogTail() {
 }
 
 bool StartEngine(std::string_view name, std::string_view code, std::string_view server,
-                 std::string_view relay, std::string& error) {
+                 std::string_view relay, std::string_view edition, std::string& error) {
     std::scoped_lock lock(g_engine_mutex);
     if (ProcessRunningLocked()) {
         error = "OrbitLan is already connected";
@@ -255,6 +254,10 @@ bool StartEngine(std::string_view name, std::string_view code, std::string_view 
         error = "relay mode must be off, auto, or on";
         return false;
     }
+    if (edition != "community" && edition != "supporter") {
+        error = "edition must be community or supporter";
+        return false;
+    }
     AdapterRecord adapter;
     if (!EnsureAdapter(adapter, error)) return false;
 
@@ -273,7 +276,7 @@ bool StartEngine(std::string_view name, std::string_view code, std::string_view 
     std::wstring command = QuoteArgument(engine.wstring());
     const std::vector<std::wstring> args = {
         L"-code", Utf8ToWide(code), L"-name", Utf8ToWide(name), L"-server", Utf8ToWide(server),
-        L"-relay", Utf8ToWide(relay), L"-datapath", L"tap", L"-api",
+        L"-relay", Utf8ToWide(relay), L"-edition", Utf8ToWide(edition), L"-datapath", L"tap", L"-api",
         L"127.0.0.1:" + std::to_wstring(kEngineApiPort),
         L"-control-token", Utf8ToWide(g_api_token), L"-adapter", adapter.guid,
     };
@@ -344,15 +347,16 @@ std::string HandleCommand(std::string_view request) {
     if (fields[0] == "PING") return "OK\tPONG";
 
     if (fields[0] == "CONNECT") {
-        if (fields.size() != 5) return "ERR\tinvalid CONNECT request";
+        if (fields.size() != 5 && fields.size() != 6) return "ERR\tinvalid CONNECT request";
         std::string name, code, server;
         if (!Base64Decode(fields[1], name) || !Base64Decode(fields[2], code) ||
             !Base64Decode(fields[3], server)) {
             return "ERR\tinvalid request encoding";
         }
+        const std::string_view edition = fields.size() == 6 ? fields[5] : "community";
         std::string error;
-        return StartEngine(name, code, server, fields[4], error) ? "OK\tCONNECTED"
-                                                                 : "ERR\t" + error;
+        return StartEngine(name, code, server, fields[4], edition, error) ? "OK\tCONNECTED"
+                                                                          : "ERR\t" + error;
     }
     if (fields[0] == "DISCONNECT") {
         std::scoped_lock lock(g_engine_mutex);
@@ -372,6 +376,27 @@ std::string HandleCommand(std::string_view request) {
                                            L"metric=" + metric},
                                           {}, 15000, &code);
         return ok ? "OK" : "ERR\tcould not update adapter priority";
+    }
+    if (fields[0] == "KICK") {
+        if (fields.size() != 2) return "ERR\tinvalid KICK request";
+        std::string peer_id;
+        if (!Base64Decode(fields[1], peer_id) || peer_id.empty() || peer_id.size() > 128 ||
+            !std::all_of(peer_id.begin(), peer_id.end(), [](unsigned char ch) {
+                return std::isalnum(ch) != 0 || ch == '-' || ch == '_';
+            })) {
+            return "ERR\tinvalid node";
+        }
+        std::scoped_lock lock(g_engine_mutex);
+        if (!ProcessRunningLocked()) return "ERR\tOrbitLan is offline";
+        std::string response;
+        const std::wstring path = L"/kick?peerID=" + Utf8ToWide(peer_id);
+        if (!HttpControl(L"POST", path, response)) {
+            while (!response.empty() && (response.back() == '\r' || response.back() == '\n')) {
+                response.pop_back();
+            }
+            return "ERR\t" + (response.empty() ? "could not remove node" : response);
+        }
+        return "OK\tREMOVED";
     }
     if (fields[0] == "STATUS") {
         std::scoped_lock lock(g_engine_mutex);
