@@ -1,0 +1,35 @@
+# secrets — never commit
+secrets/
+*.pem
+.dev.vars
+*.env
+
+# private operational and launch notes
+/internal/
+/docs/internal/
+/docs/*-launch.md
+
+# node / wrangler
+node_modules/
+.wrangler/
+dist/
+
+# build output
+/build/
+bin/
+obj/
+*.exe
+*.zip
+publish/
+
+# Required signed adapter installer bundled with the client.
+!client/ui/payload/driver/devcon.exe
+
+# editor / os
+.vs/
+.vscode/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
+*.log

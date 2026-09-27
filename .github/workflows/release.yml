@@ -1,0 +1,143 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+      - name: Test and package Linux clients
+        run: |
+          cd client/engine
+          go test -race ./...
+          go vet ./...
+          cd ../..
+          VERSION="${GITHUB_REF_NAME#v}" EDITION=community ./scripts/build-linux-release.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: OrbitLan-Linux-release
+          path: dist/linux/community
+          if-no-files-found: error
+
+  windows:
+    needs: linux
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+      - uses: actions/download-artifact@v8
+        with:
+          name: OrbitLan-Linux-release
+          path: build/release-linux
+
+      - name: Test and build network engine
+        shell: pwsh
+        run: |
+          $engineOutput = Join-Path $env:GITHUB_WORKSPACE "build/release-engine/OrbitLan.NetworkEngine.exe"
+          New-Item -ItemType Directory -Path (Split-Path $engineOutput) -Force | Out-Null
+          Push-Location client/engine
+          try {
+            go test ./...
+            $env:GOOS = "windows"
+            $env:GOARCH = "amd64"
+            go build -trimpath -ldflags "-s -w" -o $engineOutput .
+          } finally {
+            Pop-Location
+          }
+
+      - name: Build and test native client
+        shell: pwsh
+        run: |
+          $engineOutput = Join-Path $env:GITHUB_WORKSPACE "build/release-engine/OrbitLan.NetworkEngine.exe"
+          cmake -S client/native -B build/native -A x64 `
+            "-DORBITLAN_ENGINE_PAYLOAD=$engineOutput" `
+            "-DORBITLAN_SUPPORTER_EDITION=OFF"
+          cmake --build build/native --config Release --parallel
+          ctest --test-dir build/native -C Release --output-on-failure
+
+      - name: Package release files
+        shell: pwsh
+        run: |
+          $release = Join-Path $env:GITHUB_WORKSPACE "build/release"
+          $portable = Join-Path $release "OrbitLan-Portable"
+          $support = Join-Path $portable "support"
+          New-Item -ItemType Directory -Path (Join-Path $support "assets") -Force | Out-Null
+          New-Item -ItemType Directory -Path (Join-Path $support "driver") -Force | Out-Null
+
+          Copy-Item build/native/bin/OrbitLan-Installer.exe $release
+          Copy-Item build/native/bin/OrbitLan.exe $portable
+          Copy-Item build/native/bin/OrbitLan.NetworkService.exe,build/native/bin/OrbitLan.Setup.exe $support
+          Copy-Item build/release-engine/OrbitLan.NetworkEngine.exe (Join-Path $support "OrbitLan.NetworkEngine.exe")
+          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png,client/ui/assets/moon-supporter.png (Join-Path $support "assets")
+          Copy-Item client/ui/payload/driver/* (Join-Path $support "driver")
+
+          Compress-Archive -Path $portable -DestinationPath (Join-Path $release "OrbitLan-Portable.zip") -CompressionLevel Optimal
+          foreach ($file in @("OrbitLan-Installer.exe", "OrbitLan-Portable.zip")) {
+            $hash = (Get-FileHash (Join-Path $release $file) -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $file" | Set-Content (Join-Path $release "$file.sha256") -Encoding ascii
+          }
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $version = $tag.TrimStart("v")
+          $notes = @"
+          OrbitLan Community Edition $tag includes the Windows app and headless Linux preview.
+
+          ### Windows
+          - Use **OrbitLan-Installer.exe** for the normal one-click installation.
+          - Use **OrbitLan-Portable.zip** if you prefer an extracted portable UI with first-run network setup.
+          - Windows binaries are currently unsigned, so SmartScreen may show an Unknown Publisher warning.
+
+          ### Linux
+          - Use **OrbitLan-Linux-amd64-v$version.tar.gz** on standard 64-bit Intel/AMD systems.
+          - Use **OrbitLan-Linux-arm64-v$version.tar.gz** on ARM64 systems.
+          - Extract the archive, read its included README, and run ``sudo ./install.sh``.
+          - Linux packaging is currently a preview.
+
+          SHA-256 files are provided beside every download. Windows and Linux clients can join the same OrbitLan rooms.
+          "@
+          $notes | Set-Content build/release/notes.md -Encoding utf8
+          $assets = @(
+            "build/release/OrbitLan-Installer.exe",
+            "build/release/OrbitLan-Installer.exe.sha256",
+            "build/release/OrbitLan-Portable.zip",
+            "build/release/OrbitLan-Portable.zip.sha256",
+            "build/release-linux/OrbitLan-Linux-amd64-v$version.tar.gz",
+            "build/release-linux/OrbitLan-Linux-amd64-v$version.tar.gz.sha256",
+            "build/release-linux/OrbitLan-Linux-arm64-v$version.tar.gz",
+            "build/release-linux/OrbitLan-Linux-arm64-v$version.tar.gz.sha256"
+          )
+
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --repo $env:GITHUB_REPOSITORY --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Failed to replace release assets." }
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY `
+              --title "OrbitLan Community Edition $tag" `
+              --notes-file build/release/notes.md
+            if ($LASTEXITCODE -ne 0) { throw "Failed to update release notes." }
+          } else {
+            gh release create $tag @assets `
+              --repo $env:GITHUB_REPOSITORY `
+              --verify-tag `
+              --title "OrbitLan Community Edition $tag" `
+              --notes-file build/release/notes.md
+          }

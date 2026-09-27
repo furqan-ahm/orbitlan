@@ -1,0 +1,42 @@
+OrbitLan Supporter Edition v1.0.1
+=================================
+
+Thank you for supporting OrbitLan.
+
+Recommended installation
+------------------------
+Open the Installer folder and run OrbitLan-Supporter-Installer.exe. Windows will request administrator approval so the
+installer can add OrbitLan's virtual network adapter and small background network service.
+After setup, open OrbitLan normally from the Start menu.
+
+Portable alternative
+--------------------
+Open the Portable folder and run OrbitLan.exe. Keep OrbitLan.exe beside its support folder;
+do not move either one out separately. The portable version still needs one administrator
+approval the first time it configures the virtual adapter and network service.
+
+Linux
+-----
+The Linux folder contains amd64 and arm64 headless Supporter builds. Extract the archive for
+your architecture, read its README.md, then run sudo ./install.sh or use ./orbitlan directly.
+
+Compatibility and Windows warnings
+----------------------------------
+OrbitLan officially supports 64-bit Windows 10 and Windows 11. The current binaries are not
+code-signed, so Windows SmartScreen may show an Unknown Publisher warning. Only run files
+downloaded from the official OrbitLan Patreon product.
+
+Verification
+------------
+The installer folder contains its SHA-256 checksum. The complete Patreon download also has
+a separate .sha256 file beside it for checking the whole ZIP.
+
+Help, source, and updates
+-------------------------
+Website: https://orbitlan.site
+Source and issues: https://github.com/furqan-ahm/orbitlan
+Email support: furqanshaheer@gmail.com
+
+OrbitLan is MIT licensed. The free Community Edition and complete source for both build
+flavors remain available on GitHub. This download has no DRM, recurring subscription, or
+Patreon login inside the app.

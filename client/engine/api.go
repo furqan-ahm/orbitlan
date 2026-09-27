@@ -1,0 +1,206 @@
+package main
+
+import (
+	"crypto/subtle"
+	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"sync"
+	"time"
+)
+
+// controlAPI is the tiny local surface the UI polls. Loopback-only; not exposed off-box.
+type controlAPI struct {
+	mesh         *Mesh
+	code         string
+	myID         string
+	myName       string
+	myIP         string
+	token        string
+	edition      string
+	relayMode    string
+	started      time.Time
+	trustedLocal bool
+	shutdown     chan struct{}
+	shutdownOnce sync.Once
+	server       *http.Server
+	listener     net.Listener
+}
+
+func (a *controlAPI) start(network, addr string) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/status", a.status)
+	mux.HandleFunc("/health", a.health)
+	mux.HandleFunc("/shutdown", a.stop)
+	mux.HandleFunc("/kick", a.kick)
+	listener, err := net.Listen(network, addr)
+	if err != nil {
+		return err
+	}
+	if network == "unix" {
+		if err := os.Chmod(addr, 0o600); err != nil {
+			listener.Close()
+			return fmt.Errorf("secure control socket: %w", err)
+		}
+	}
+	a.listener = listener
+	a.server = &http.Server{Handler: mux, ReadHeaderTimeout: 3 * time.Second}
+	go func() { _ = a.server.Serve(listener) }()
+	return nil
+}
+
+func (a *controlAPI) close() {
+	if a.server != nil {
+		_ = a.server.Close()
+	}
+	if a.listener != nil {
+		_ = a.listener.Close()
+	}
+}
+
+func (a *controlAPI) authorized(r *http.Request) bool {
+	if a.trustedLocal {
+		return true
+	}
+	provided := r.Header.Get("X-OrbitLan-Token")
+	return a.token != "" && len(provided) == len(a.token) &&
+		subtle.ConstantTimeCompare([]byte(provided), []byte(a.token)) == 1
+}
+
+func (a *controlAPI) requireAuth(w http.ResponseWriter, r *http.Request) bool {
+	if a.authorized(r) {
+		return true
+	}
+	http.Error(w, "unauthorized", http.StatusUnauthorized)
+	return false
+}
+
+func (a *controlAPI) health(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	w.Write([]byte("ok"))
+}
+
+func (a *controlAPI) stop(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	a.shutdownOnce.Do(func() { close(a.shutdown) })
+	w.Write([]byte("stopping"))
+}
+
+type statusResp struct {
+	MyID       string       `json:"myID"`
+	MyName     string       `json:"myName"`
+	MyIP       string       `json:"myIP"`
+	Code       string       `json:"code"`
+	Peers      []PeerStatus `json:"peers"`
+	Summary    string       `json:"summary"`
+	IsHost     bool         `json:"isHost"`
+	HostPeerID string       `json:"hostPeerID"`
+	Edition    string       `json:"edition"`
+	RelayMode  string       `json:"relayMode"`
+	StartedAt  int64        `json:"startedAt"`
+}
+
+func (a *controlAPI) status(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	peers := a.mesh.snapshotPeers()
+	direct, relay, connecting := 0, 0, 0
+	for _, p := range peers {
+		switch p.State {
+		case string(StDirect):
+			direct++
+		case string(StRelay):
+			relay++
+		default:
+			connecting++
+		}
+	}
+	isHost, hostPeerID := a.mesh.hostStatus()
+	resp := statusResp{
+		MyID: a.myID, MyName: a.myName, MyIP: a.myIP, Code: a.code, Peers: peers,
+		Summary: summarize(direct, relay, connecting), IsHost: isHost, HostPeerID: hostPeerID,
+		Edition: a.edition, RelayMode: a.relayMode, StartedAt: a.started.Unix(),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func validPeerID(value string) bool {
+	if len(value) < 1 || len(value) > 128 {
+		return false
+	}
+	for _, ch := range value {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') &&
+			(ch < '0' || ch > '9') && ch != '-' && ch != '_' {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *controlAPI) kick(w http.ResponseWriter, r *http.Request) {
+	if !a.requireAuth(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	peerID := r.URL.Query().Get("peerID")
+	if !validPeerID(peerID) {
+		http.Error(w, "invalid node", http.StatusBadRequest)
+		return
+	}
+	if err := a.mesh.kick(peerID); err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	w.Write([]byte("removed"))
+}
+
+func summarize(direct, relay, connecting int) string {
+	total := direct + relay + connecting
+	if total == 0 {
+		return "waiting for peers to join…"
+	}
+	s := ""
+	if direct > 0 {
+		s += itoa(direct) + " direct"
+	}
+	if relay > 0 {
+		if s != "" {
+			s += ", "
+		}
+		s += itoa(relay) + " relayed"
+	}
+	if connecting > 0 {
+		if s != "" {
+			s += ", "
+		}
+		s += itoa(connecting) + " connecting"
+	}
+	return s
+}
+
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	var b []byte
+	for n > 0 {
+		b = append([]byte{byte('0' + n%10)}, b...)
+		n /= 10
+	}
+	return string(b)
+}

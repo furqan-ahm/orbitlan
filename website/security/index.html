@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrbitLan Security and Network Architecture</title>
+<meta name="description" content="How OrbitLan connects peers, encrypts virtual-LAN traffic, uses its coordinator and relays, and what users should know about its security limits.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#171743">
+<link rel="canonical" href="https://orbitlan.site/security/">
+<link rel="icon" type="image/webp" href="../assets/earthspin-transparent.webp">
+<link rel="stylesheet" href="../guides/guide.css">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OrbitLan">
+<meta property="og:title" content="OrbitLan Security and Architecture">
+<meta property="og:description" content="A plain-language description of OrbitLan's encryption, coordinator, relays, and current limitations.">
+<meta property="og:url" content="https://orbitlan.site/security/">
+<meta property="og:image" content="https://orbitlan.site/assets/orbitlan-logo.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "OrbitLan Security and Network Architecture",
+  "description": "How OrbitLan connects peers, encrypts virtual-LAN traffic, and uses its coordinator and relays.",
+  "datePublished": "2026-09-27",
+  "dateModified": "2026-09-28",
+  "mainEntityOfPage": "https://orbitlan.site/security/",
+  "author": {"@id": "https://orbitlan.site/#furqan-ahmed"},
+  "publisher": {"@id": "https://orbitlan.site/#organization"}
+}
+</script>
+</head>
+<body>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="../"><img src="../assets/earthspin-transparent.webp" width="35" height="35" alt=""><span>rbitLan</span></a>
+    <div class="nav-links"><a href="../about/">About</a><a href="../privacy/">Privacy</a><a href="https://github.com/furqan-ahm/orbitlan">Source</a><a class="download" href="../download/">Download</a></div>
+  </nav>
+</header>
+<main>
+  <header class="guide-head">
+    <div class="wrap">
+      <p class="eyebrow">Security and architecture</p>
+      <h1>What OrbitLan protects—and what it does not.</h1>
+      <p class="lede">A direct explanation of the coordinator, peer links, relay fallback, encryption, and current limits.</p>
+    </div>
+  </header>
+  <article class="article">
+    <div class="wrap article-body">
+      <p class="meta">Written by Furqan Ahmed · Updated September 28, 2026</p>
+
+      <h2>The short version</h2>
+      <p>OrbitLan creates encrypted links between the devices in a room. It tries direct peer-to-peer paths first and can fall back to a relay when restrictive networks prevent a direct connection. The coordinator introduces nodes and exchanges connection signaling; it does not receive the Ethernet frames carried through the virtual LAN.</p>
+      <div class="note"><strong>Use OrbitLan with people you trust.</strong> The room code is both the invitation and the shared secret used to derive traffic-encryption keys. Anyone who knows the code should be treated as a member of that trusted room.</div>
+
+      <h2>Traffic encryption</h2>
+      <p>Virtual-LAN frames are protected with ChaCha20-Poly1305 authenticated encryption. OrbitLan derives a separate directional key for each pair of nodes using HKDF-SHA-256 and protects packets against replay with a sliding counter window.</p>
+      <p>The current v1 protocol derives those keys from the shared room code. It does not yet use a per-peer Noise or X25519 handshake and therefore does not provide forward secrecy. This is an explicitly documented limitation, not an undisclosed guarantee.</p>
+      <p>Six-character room codes favor convenience over password-strength entropy. Treat a code as a temporary invitation for a trusted group, do not publish it, and create a new room if it becomes exposed.</p>
+
+      <h2>Coordinator and relay</h2>
+      <table>
+        <thead><tr><th>Component</th><th>What it handles</th><th>What it does not receive</th></tr></thead>
+        <tbody>
+          <tr><td>Coordinator</td><td>Room membership, display names, virtual IP assignment, edition, ICE signaling, host state, and short-lived connection metadata.</td><td>LAN Ethernet frames and application payloads.</td></tr>
+          <tr><td>Direct peer link</td><td>Encrypted virtual-LAN packets sent directly between two nodes.</td><td>No central OrbitLan server carries that traffic.</td></tr>
+          <tr><td>Relay fallback</td><td>Encrypted packets when a direct path cannot be established.</td><td>The relay process is not handed a decryption key, but v1 keys derive from the room code known to the coordinator. This is not a zero-knowledge or operator-proof design.</td></tr>
+        </tbody>
+      </table>
+      <p>Coordinator room and signaling state is ephemeral and kept in memory. Nodes that stop polling are removed, and an empty room resets. Cloudflare or a self-hosted operator can still observe ordinary service-level metadata such as request addresses and timestamps.</p>
+
+      <h2>Local privileges</h2>
+      <p>Windows needs administrator approval during initial setup to install the TAP adapter, background network service, and firewall rule. The graphical app runs normally after setup. Linux requires permission to create and configure a TAP interface, normally through <code>sudo</code> or the included systemd service.</p>
+
+      <h2>Current trust boundaries</h2>
+      <ul>
+        <li>Share room codes only with people you trust and replace a code if it becomes public.</li>
+        <li>Software inside the virtual LAN can reach other nodes according to each operating system's firewall rules.</li>
+        <li>OrbitLan does not make an unsafe game server safe and does not replace normal host firewall maintenance.</li>
+        <li>The project has not undergone an independent professional security audit.</li>
+        <li>Current Windows binaries are not code-signed, so Windows may show an Unknown Publisher warning.</li>
+        <li>OrbitLan is not an anonymity or public-internet privacy VPN.</li>
+      </ul>
+
+      <h2>Verify the software</h2>
+      <p>Community releases and their SHA-256 checksum files are published from the official GitHub repository. The same repository contains the complete engine, client, coordinator, build scripts, and MIT license.</p>
+      <div class="official-links">
+        <a href="https://github.com/furqan-ahm/orbitlan">Inspect the source</a>
+        <a href="https://github.com/furqan-ahm/orbitlan/releases">Verify release files and checksums</a>
+        <a href="https://github.com/furqan-ahm/orbitlan/issues">Report a public security or reliability issue</a>
+      </div>
+
+      <h2>Report a vulnerability</h2>
+      <p>For a sensitive vulnerability that should not be posted publicly, email <a href="mailto:furqanshaheer@gmail.com">furqanshaheer@gmail.com</a> with the subject “OrbitLan security”. Avoid including real room codes, private keys, passwords, or personal data in a public issue.</p>
+
+      <section class="cta">
+        <h2>Start from an official build.</h2>
+        <p>Choose the stable Windows client or the Linux headless preview.</p>
+        <div class="buttons"><a class="button" href="../download/">Official downloads</a><a class="button secondary" href="../privacy/">Privacy information</a></div>
+      </section>
+    </div>
+  </article>
+</main>
+<footer><div class="wrap footer-row"><span>OrbitLan by <a href="https://github.com/furqan-ahm" rel="me">Furqan Ahmed</a> · open source · MIT</span><span><a href="../">Home</a><a href="../download/">Downloads</a><a href="../about/">About</a><a href="../privacy/">Privacy</a><a href="https://github.com/furqan-ahm/orbitlan/issues">Help</a></span></div></footer>
+</body>
+</html>

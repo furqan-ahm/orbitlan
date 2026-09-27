@@ -1,0 +1,5 @@
+Contact: mailto:furqanshaheer@gmail.com
+Expires: 2027-09-27T00:00:00.000Z
+Canonical: https://orbitlan.site/.well-known/security.txt
+Policy: https://orbitlan.site/security/
+Preferred-Languages: en

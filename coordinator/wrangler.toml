@@ -1,0 +1,47 @@
+# OrbitLan coordinator — Cloudflare Worker + Durable Objects.
+#
+# Deploy:
+#   npm install
+#   npx wrangler secret put CF_TURN_KEY_ID
+#   npx wrangler secret put CF_TURN_API_TOKEN
+#   npx wrangler deploy
+#
+# Local dev (uses .dev.vars for secrets):
+#   npx wrangler dev
+
+name = "orbitlan"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.01
+
+# Non-secret config. Secrets (CF_TURN_KEY_ID, CF_TURN_API_TOKEN) are set with
+# `wrangler secret put`, never committed.
+[vars]
+RELAY_ENABLED = "true"   # "false" => direct-only for everyone
+MAX_MEMBERS = "32"       # generous per-network cap
+COMMUNITY_MEMBER_CAP = "5" # official service: host + 4 other computers; self-hosters may use "0"
+# To use your own coturn relay instead of Cloudflare TURN, add a TURN_URL here
+# and store its REST secret with: npx wrangler secret put TURN_SHARED_SECRET
+# TURN_URL = "turn:203.0.113.10:3478?transport=udp"
+
+# One Durable Object class = one network per join code.
+[[durable_objects.bindings]]
+name = "NETWORK"
+class_name = "Network"
+
+# SQLite-backed DO storage — free on the Workers free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Network"]

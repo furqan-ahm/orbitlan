@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  coordinator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coordinator
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: coordinator/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  windows-client:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Test and build engine
+        working-directory: client/engine
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        run: |
+          go test ./...
+          go build -trimpath -ldflags "-s -w" -o ../ui/payload/orbitlan-engine.exe .
+      - name: Build UI
+        run: dotnet build client/ui/OrbitLan.csproj -c Release
+      - name: Build native client, service, and installer
+        run: |
+          cmake -S client/native -B build/native -A x64
+          cmake --build build/native --config Release --parallel
+          ctest --test-dir build/native -C Release --output-on-failure
+      - name: Stage native package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path build/native-artifact/OrbitLan-Portable/support/assets -Force | Out-Null
+          New-Item -ItemType Directory -Path build/native-artifact/OrbitLan-Portable/support/driver -Force | Out-Null
+          Copy-Item build/native/bin/OrbitLan-Installer.exe build/native-artifact/
+          Copy-Item build/native/bin/OrbitLan.exe build/native-artifact/OrbitLan-Portable/
+          Copy-Item build/native/bin/OrbitLan.NetworkService.exe,build/native/bin/OrbitLan.Setup.exe build/native-artifact/OrbitLan-Portable/support/
+          Copy-Item client/ui/payload/orbitlan-engine.exe build/native-artifact/OrbitLan-Portable/support/OrbitLan.NetworkEngine.exe
+          Copy-Item client/ui/payload/driver/* build/native-artifact/OrbitLan-Portable/support/driver/
+          Copy-Item client/ui/assets/earth-clouds.gif,client/ui/assets/earth-header-sheet.png build/native-artifact/OrbitLan-Portable/support/assets/
+      - uses: actions/upload-artifact@v7
+        with:
+          name: OrbitLan-Native-${{ github.sha }}
+          path: build/native-artifact
+          if-no-files-found: error
+
+  linux-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: client/engine/go.mod
+          cache-dependency-path: client/engine/go.sum
+      - name: Test Linux engine
+        working-directory: client/engine
+        run: |
+          go test -race ./...
+          go vet ./...
+      - name: Build static Linux clients
+        run: VERSION=${{ github.sha }} ./scripts/build-linux-release.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: OrbitLan-Linux-${{ github.sha }}
+          path: dist/linux
+          if-no-files-found: error

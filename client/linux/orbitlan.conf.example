@@ -1,0 +1,11 @@
+# Required: use `orbitlan new` once if you need a fresh six-character code.
+ORBITLAN_CODE=CHANGE_ME
+
+# This node's room-visible name.
+ORBITLAN_NAME=linux-node
+
+# Defaults normally do not need changing.
+ORBITLAN_SERVER=https://orbitlan.furqan-ahm.workers.dev
+ORBITLAN_RELAY=auto
+ORBITLAN_EDITION=community
+ORBITLAN_ADAPTER=orbitlan0
