@@ -42,50 +42,43 @@ icoHeader.writeUInt32LE(22, 18);
 await fs.writeFile(path.join(websiteDir, "favicon.ico"), Buffer.concat([icoHeader, faviconPng]));
 
 const earth = await sharp(cloudyEarthSource, { page: 0 })
-  .resize(430, 430, { fit: "contain", kernel: sharp.kernel.nearest })
+  .resize(470, 470, { fit: "contain", kernel: sharp.kernel.nearest })
   .png()
   .toBuffer();
 
 const socialBackground = Buffer.from(`
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#080d3e"/>
-      <stop offset="0.58" stop-color="#171957"/>
-      <stop offset="1" stop-color="#49356f"/>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.92" y2="1">
+      <stop offset="0" stop-color="#090e43"/>
+      <stop offset="0.56" stop-color="#111755"/>
+      <stop offset="1" stop-color="#40316b"/>
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#6379e8" stop-opacity="0.34"/>
-      <stop offset="1" stop-color="#6379e8" stop-opacity="0"/>
+      <stop offset="0" stop-color="#6f7ce8" stop-opacity="0.23"/>
+      <stop offset="1" stop-color="#6f7ce8" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#sky)"/>
-  <circle cx="940" cy="315" r="290" fill="url(#glow)"/>
-  <g fill="#d9dcff" opacity="0.88">
-    <rect x="68" y="76" width="4" height="4"/><rect x="206" y="116" width="3" height="3"/>
-    <rect x="355" y="65" width="4" height="4"/><rect x="536" y="102" width="3" height="3"/>
-    <rect x="684" y="58" width="4" height="4"/><rect x="1101" y="91" width="3" height="3"/>
-    <rect x="93" y="523" width="3" height="3"/><rect x="444" y="554" width="4" height="4"/>
-    <rect x="662" y="498" width="3" height="3"/><rect x="1138" y="506" width="4" height="4"/>
+  <circle cx="955" cy="315" r="300" fill="url(#glow)"/>
+  <g fill="#e3e5ff">
+    <rect x="66" y="74" width="4" height="4"/><rect x="211" y="119" width="3" height="3"/>
+    <rect x="356" y="67" width="4" height="4"/><rect x="538" y="101" width="3" height="3"/>
+    <rect x="681" y="56" width="4" height="4"/><rect x="1103" y="91" width="3" height="3"/>
+    <rect x="92" y="528" width="3" height="3"/><rect x="444" y="552" width="4" height="4"/>
+    <rect x="660" y="504" width="3" height="3"/><rect x="1138" y="512" width="4" height="4"/>
   </g>
-  <g fill="none" stroke="#9da8ff" stroke-width="2" opacity="0.48">
-    <ellipse cx="945" cy="315" rx="270" ry="112" transform="rotate(-8 945 315)"/>
-    <ellipse cx="945" cy="315" rx="248" ry="178" transform="rotate(18 945 315)"/>
-  </g>
-  <g fill="#9ae4bd">
-    <circle cx="706" cy="273" r="8"/><circle cx="1088" cy="202" r="8"/>
-    <circle cx="1146" cy="366" r="8"/><circle cx="818" cy="480" r="8"/>
-  </g>
-  <text x="76" y="235" fill="#ffffff" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-4">OrbitLan</text>
-  <text x="80" y="306" fill="#dfe1ff" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="34" font-weight="650">Your private LAN, online.</text>
-  <text x="80" y="363" fill="#bbc0e9" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="23">Open source virtual LAN for games,</text>
-  <text x="80" y="397" fill="#bbc0e9" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="23">servers, Windows and Linux.</text>
-  <rect x="80" y="452" width="225" height="52" rx="10" fill="#ffffff"/>
-  <text x="192.5" y="486" fill="#171743" text-anchor="middle" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="18" font-weight="750">FREE &amp; OPEN SOURCE</text>
+  <text x="80" y="140" fill="#c9c7ff" font-family="DejaVu Sans Mono, monospace" font-size="18" font-weight="700" letter-spacing="1.5">FREE + OPEN SOURCE</text>
+  <text x="76" y="244" fill="#ffffff" font-family="DejaVu Sans, Arial, sans-serif" font-size="86" font-weight="700" letter-spacing="-4">OrbitLan</text>
+  <text x="80" y="310" fill="#e2e3ff" font-family="DejaVu Sans, Arial, sans-serif" font-size="34" font-weight="700">Virtual LAN for Windows + Linux</text>
+  <text x="80" y="375" fill="#bcc0e5" font-family="DejaVu Sans, Arial, sans-serif" font-size="23">Create a room. Share the code. Play.</text>
+  <line x1="80" y1="451" x2="560" y2="451" stroke="#8386b8" stroke-width="1"/>
+  <text x="80" y="497" fill="#ffffff" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="700">orbitlan.site</text>
+  <text x="80" y="532" fill="#aeb2d9" font-family="DejaVu Sans, Arial, sans-serif" font-size="17">Games · servers · private IP tools</text>
 </svg>`);
 
 await sharp(socialBackground)
-  .composite([{ input: earth, left: 730, top: 100 }])
+  .composite([{ input: earth, left: 700, top: 80 }])
   .png({ compressionLevel: 9 })
   .toFile(path.join(assetsDir, "orbitlan-social.png"));
 
