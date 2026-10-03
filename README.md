@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="website/assets/earth-clouds.gif" width="40" align="texttop" alt="O">rbitLan
+  <img src="https://orbitlan.site/assets/earth-clouds.gif" width="40" align="texttop" alt="O">rbitLan
 </h1>
 
 <p align="center">
@@ -285,7 +285,7 @@ For help that should not be discussed publicly, email
 |---|---|
 | [`coordinator/`](coordinator/) | Cloudflare Worker + Durable Object signaling/TURN coordinator |
 | [`client/`](client/) | Shared Go network engine, native Windows UI/service, and Linux packaging |
-| [`website/`](website/) | Marketing/landing site (Cloudflare Pages) |
+| [Website source](https://github.com/furqan-ahm/orbitlan-site) | Marketing/landing site, deployed independently |
 | [`docs/architecture.md`](docs/architecture.md) | Current control plane, data plane, and local security boundaries |
 
 ## License

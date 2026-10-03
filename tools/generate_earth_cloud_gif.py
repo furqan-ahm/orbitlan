@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import math
 import random
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,7 +14,6 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SHEET = ROOT / "client/ui/assets/earthspin-sheet.png"
 OUTPUT_GIF = ROOT / "client/ui/assets/earth-clouds.gif"
-WEB_OUTPUT_GIF = ROOT / "website/assets/earth-clouds.gif"
 HEADER_SHEET = ROOT / "client/ui/assets/earth-header-sheet.png"
 
 SOURCE_SIZE = 240
@@ -227,13 +225,11 @@ def main() -> None:
         optimize=False,
         transparency=0,
     )
-    shutil.copyfile(OUTPUT_GIF, WEB_OUTPUT_GIF)
     header_sheet = Image.new("RGBA", (480, 480), (0, 0, 0, 0))
     for index, frame in enumerate(header_frames):
         header_sheet.alpha_composite(frame, ((index % 10) * 48, (index // 10) * 48))
     header_sheet.save(HEADER_SHEET, optimize=True)
     print(f"wrote {OUTPUT_GIF} ({FRAME_COUNT} frames, {CANVAS_SIZE}x{CANVAS_SIZE})")
-    print(f"copied {WEB_OUTPUT_GIF}")
     print(f"wrote {HEADER_SHEET} (plain Earth header atlas)")
 
 
